@@ -11,9 +11,14 @@ config_version=5
 [application]
 
 config/name="gd_widebrim"
-run/main_scene="res://scene_control.tscn"
+run/main_scene="res://scene.tscn"
 config/features=PackedStringArray("4.0", "Mobile")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=720
 
 [rendering]
 

@@ -1,16 +1,13 @@
 extends Node2D
 
-var DEBUG_ARC = preload("res://asset_arc.gd")
+var GodotLt2SpriteLoader = preload("res://node_lt2_anim.gd")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var debug = DEBUG_ARC.new("res://assets/data/ani/eventchr/chr2.spr")
-	
-	var im_tex = ImageTexture.create_from_image(debug.get_frame(2))
-
-	var node_image = get_node("debug")
-	node_image.texture = im_tex
-
+	var test = GodotLt2SpriteLoader.new("eventchr/chr2.spr")
+	add_child(test)
+	test.set_transparency(1.0)
+	test.set_animation_from_name("*b1 normal")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
