@@ -1,6 +1,6 @@
 extends Camera2D
 
-var target_virtual_res : Vector2i = Vector2i(768, 1152)
+var target_virtual_res : Vector2i = Lt2Constants.RESOLUTION_TARGET
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

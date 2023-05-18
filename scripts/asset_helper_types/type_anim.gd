@@ -1,3 +1,5 @@
+class_name Lt2TypeAnimation
+
 extends Object
 
 const MAGIC_VARIABLE : int = 4660

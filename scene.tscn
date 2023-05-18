@@ -1,10 +1,11 @@
 [gd_scene load_steps=4 format=3 uid="uid://3lu7uxj13xes"]
 
-[ext_resource type="PackedScene" uid="uid://chjyrf0f17hhk" path="res://gamemode_event.tscn" id="1_7brkr"]
+[ext_resource type="Script" path="res://scene.gd" id="1_q4vfu"]
 [ext_resource type="Script" path="res://cam_fs_auto_scale.gd" id="2_mjatt"]
 [ext_resource type="Script" path="res://screen_controller.gd" id="3_cwo7r"]
 
 [node name="scene" type="Node2D"]
+script = ExtResource("1_q4vfu")
 
 [node name="debug_bad_area" type="ColorRect" parent="."]
 offset_left = -400.0
@@ -31,35 +32,37 @@ color = Color(0, 0, 0, 1)
 
 [node name="bg_ts" type="TextureRect" parent="control_bg"]
 clip_contents = true
-offset_left = -384.0
-offset_top = -576.0
-offset_right = 384.0
+offset_left = -320.0
+offset_top = -626.0
+offset_right = 320.0
 expand_mode = 1
-stretch_mode = 3
+stretch_mode = 6
 
 [node name="bg_bs" type="TextureRect" parent="control_bg"]
-offset_left = -384.0
-offset_right = 384.0
-offset_bottom = 576.0
+clip_contents = true
+offset_left = -320.0
+offset_right = 320.0
+offset_bottom = 626.0
 expand_mode = 1
-stretch_mode = 3
+stretch_mode = 6
 
 [node name="control_gamemode" type="Node2D" parent="."]
-
-[node name="gamemode_event" parent="control_gamemode" instance=ExtResource("1_7brkr")]
 
 [node name="control_fade" type="Node2D" parent="."]
 position = Vector2(-384, -576)
 
 [node name="fade_ts" type="ColorRect" parent="control_fade"]
-offset_right = 768.0
-offset_bottom = 576.0
+top_level = true
+offset_left = -320.0
+offset_top = -626.0
+offset_right = 320.0
 color = Color(0, 0, 0, 1)
 
 [node name="fade_bs" type="ColorRect" parent="control_fade"]
-offset_top = 576.0
-offset_right = 768.0
-offset_bottom = 1152.0
+top_level = true
+offset_left = -320.0
+offset_right = 320.0
+offset_bottom = 626.0
 color = Color(0, 0, 0, 1)
 
 [node name="cam" type="Camera2D" parent="."]

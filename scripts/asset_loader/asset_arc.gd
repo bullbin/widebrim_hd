@@ -1,15 +1,16 @@
-extends Node
+class_name Lt2AssetSprite
+
+extends Object
 
 const LT2_ANIM_COUNT_VARS 	: int = 16
 const LT2_ANIM_VAR_LEN		: int = 8
 const LT2_ANIM_VAR_EMPTY	: Array[int] = [0,0,0,0,0,0,0,0]
 
-const Lt2Anim 	= preload("res://type_anim.gd")
 const Utils 	= preload("res://utils.gd")
 
 var _spritesheet	: Image				= null
 var _frames 		: Array[Rect2i] 	= []
-var _anims 			: Array[Lt2Anim] 	= []
+var _anims 			: Array[Lt2TypeAnimation] 	= []
 var _var_names 		: Array[String]		= []
 var _var_data		: Array[Array] 		= []
 
@@ -52,7 +53,7 @@ func _init(path_arc : String):
 			# TODO - Not good. These are either cp1252 or shift-jis encoded (?)
 			#        At least Godot handles null termination!
 			name_anim = file.get_buffer(30).get_string_from_utf8()
-			_anims.append(Lt2Anim.new(name_anim))
+			_anims.append(Lt2TypeAnimation.new(name_anim))
 		
 		var count_keyframes : int;
 		var idx_image 	: Array[int] = [];
@@ -82,7 +83,7 @@ func _init(path_arc : String):
 				_anims[idx_anim].add_frame(idx_image[idx_reorder], durations[idx_reorder])
 		
 		if file.get_position() < file.get_length():
-			if file.get_16() == Lt2Anim.MAGIC_VARIABLE:
+			if file.get_16() == Lt2TypeAnimation.MAGIC_VARIABLE:
 				for idx_var in range(LT2_ANIM_COUNT_VARS):
 					# TODO - Bad encoding!
 					_var_names.append(file.get_buffer(16).get_string_from_utf8())
@@ -127,23 +128,23 @@ func get_frame_region(idx_frame : int) -> Rect2i:
 func get_count_anims() -> int:
 	return len(_anims)
 
-func get_anim_by_index(idx_anim : int) -> Lt2Anim:
+func get_anim_by_index(idx_anim : int) -> Lt2TypeAnimation:
 	if 0 <= idx_anim and idx_anim < len(_anims):
 		return _anims[idx_anim]
 	return null
 
-func get_anim_by_name(name_anim : String) -> Lt2Anim:
+func get_anim_by_name(name_anim : String) -> Lt2TypeAnimation:
 	for anim in _anims:
 		if Utils.lt2_string_compare(anim.get_name(), name_anim):
 			return anim
 	return null
 
-func get_variable_by_index(idx_var : int) -> Array[int]:
+func get_variable_by_index(idx_var : int) -> Array:
 	if 0 <= idx_var and idx_var < len(_var_names):
 		return _var_data[idx_var]
 	return LT2_ANIM_VAR_EMPTY
 
-func get_variable_by_name(name_var : String) -> Array[int]:
+func get_variable_by_name(name_var : String) -> Array:
 	var idx_var = 0
 	for name in _var_names:
 		if Utils.lt2_string_compare(name, name_var):

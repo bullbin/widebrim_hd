@@ -1,3 +1,5 @@
+class_name Lt2ScreenController
+
 extends Node2D
 
 # TODO - Check room draw overlays on how to center images correctly
@@ -12,10 +14,10 @@ var _timer_bs_callback 	: Callable 	= Callable()
 var _timer_ts			: Timer	 	= Timer.new()
 var _timer_bs			: Timer		= Timer.new()
 
-var _node_fade_ts 	: ColorRect 	= null
-var _node_fade_bs 	: ColorRect 	= null
-var _node_bg_ts 	: TextureRect 	= null
-var _node_bg_bs		: TextureRect 	= null
+@onready var _node_fade_ts 	: ColorRect 	= get_parent().get_node("control_fade/fade_ts")
+@onready var _node_fade_bs 	: ColorRect 	= get_parent().get_node("control_fade/fade_bs")
+@onready var _node_bg_ts 	: TextureRect 	= get_parent().get_node("control_bg/bg_ts")
+@onready var _node_bg_bs	: TextureRect 	= get_parent().get_node("control_bg/bg_bs")
 
 var _fade_target_bs : float = 1.0
 var _fade_target_ts : float = 1.0
@@ -48,16 +50,8 @@ func _ready():
 	_timer_bs.timeout.connect(_on_timer_bs_done)
 	_timer_ts.one_shot = true
 	_timer_bs.one_shot = true
-	_node_fade_ts = get_parent().get_node("control_fade/fade_ts")
-	_node_fade_bs = get_parent().get_node("control_fade/fade_bs")
-	_node_bg_ts = get_parent().get_node("control_bg/bg_ts")
-	_node_bg_bs = get_parent().get_node("control_bg/bg_bs")
 	add_child(_timer_bs)
 	add_child(_timer_ts)
-	
-	set_background_bs("ebg/ebg_1.arc")
-	set_background_ts("ebg/ebg_11.arc")
-	fade_in()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -91,6 +85,7 @@ func set_background_bs(path_bg_relative : String) -> bool:
 	_node_bg_bs.show()
 	bg = ImageTexture.create_from_image(bg)
 	_node_bg_bs.texture = bg
+	set_background_bs_overlay(0)
 	return true
 
 func set_background_ts(path_bg_relative : String) -> bool:
@@ -104,12 +99,27 @@ func set_background_ts(path_bg_relative : String) -> bool:
 	_node_bg_ts.show()
 	bg = ImageTexture.create_from_image(bg)
 	_node_bg_ts.texture = bg
+	set_background_ts_overlay(0)
 	return true
 
-func set_background_bs_overlay():
+# TODO - This is not accurate
+func set_background_bs_overlay(darkness : int):
+	var modulation = float(darkness) / 255
+	modulation = min(max(modulation, 0.0), 1.0)
+	_node_bg_bs.modulate.a = 1 - modulation
+
+func set_background_ts_overlay(darkness : int):
+	var modulation = float(darkness) / 255
+	modulation = min(max(modulation, 0.0), 1.0)
+	_node_bg_ts.modulate.a = 1 - modulation
+
+func shake_bs(duration : float):
 	pass
 
-func set_background_ts_overlay():
+func shake_ts(duration : float):
+	pass
+
+func flash_bs(duration : float):
 	pass
 
 # TODO - Both fading functions aren't amazingly safe or well animated

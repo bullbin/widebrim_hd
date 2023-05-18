@@ -1,20 +1,18 @@
+class_name Lt2GodotAnimation
+
 extends Node2D
 
-const LT2_FRAME_INTERVAL : float = 1.0 / 60
-
 const Utils 	= preload("res://utils.gd")
-const Lt2Sprite = preload("res://asset_arc.gd")
-const Lt2Anim	= preload("res://type_anim.gd")
 
-var _sprite_root 	: Lt2Sprite = null
-var _sprite_add 	: Lt2Sprite = null	# Recursive approach not needed - only 1 layer supported!
+var _sprite_root 	: Lt2AssetSprite = null
+var _sprite_add 	: Lt2AssetSprite = null	# Recursive approach not needed - only 1 layer supported!
 var _canvas_root	: CanvasGroup = null
 
 var _node_root		: Sprite2D	= null
 var _node_add		: Sprite2D 	= null
 
-var _anim_active_root 	: Lt2Anim = null
-var _anim_active_add	: Lt2Anim = null
+var _anim_active_root 	: Lt2TypeAnimation = null
+var _anim_active_add	: Lt2TypeAnimation = null
 
 var _idx_current_root 	: int = 0
 var _idx_current_add 	: int = 0
@@ -24,12 +22,14 @@ var _add_base_offset	: Vector2 = Vector2(0,0)
 
 var _maximal_size_px	: Vector2i = Vector2i(0,0)
 
+var _pos_offset 		: Vector2 = Vector2(0,0)
+
 func _init(path_ani_relative : String):
 	_canvas_root = CanvasGroup.new()
 	add_child(_canvas_root)
 	
 	var path_anim = Utils.get_asset_root() % ("ani/%s" % path_ani_relative)
-	_sprite_root = Lt2Sprite.new(path_anim)
+	_sprite_root = Lt2AssetSprite.new(path_anim)
 	
 	_node_add 	= Sprite2D.new()
 	_node_add.region_enabled = true
@@ -49,8 +49,8 @@ func _init(path_ani_relative : String):
 			_maximal_size_px.y = max(region.size.y, _maximal_size_px.y)
 	
 	if _sprite_root.get_subanimation_name() != "":
-		_sprite_add = Lt2Sprite.new(Utils.get_asset_root() %
-									("ani/sub/%s.spr" % _sprite_root.get_subanimation_name()))
+		_sprite_add = Lt2AssetSprite.new(Utils.get_asset_root() %
+											("ani/sub/%s.spr" % _sprite_root.get_subanimation_name()))
 		if _sprite_add.get_spritesheet() != null:
 			_node_add.texture = ImageTexture.create_from_image(_sprite_add.get_spritesheet())
 			
@@ -68,8 +68,8 @@ func _init(path_ani_relative : String):
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	_elapsed_on_root += (delta / LT2_FRAME_INTERVAL)
-	_elapsed_on_add += (delta / LT2_FRAME_INTERVAL)
+	_elapsed_on_root += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+	_elapsed_on_add += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 	_force_redraw()
 	
 func _force_apply_anim_visibility_check():
@@ -176,8 +176,21 @@ func get_variable_as_vector_from_index(idx_var : int) -> Vector2i:
 func get_maximal_dimensions() -> Vector2i:
 	return _maximal_size_px
 
+func set_flippable_position(pos : Vector2):
+	position.x = pos.x + _pos_offset.x
+	position.y = pos.y
+
+func get_flippable_position() -> Vector2:
+	return Vector2(position.x - _pos_offset.x, position.y)
+
 func set_flip_state(flipped : bool):
-	pass
+	if flipped:
+		scale.x = -1
+		_pos_offset.x = _maximal_size_px.x
+	else:
+		scale.x = 1
+		_pos_offset.x = 0
+	set_flippable_position(position)
 
 func set_transparency(alpha : float):
 	_canvas_root.self_modulate = Color(1,1,1,alpha)
