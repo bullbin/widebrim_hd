@@ -28,8 +28,7 @@ func _init(path_ani_relative : String):
 	_canvas_root = CanvasGroup.new()
 	add_child(_canvas_root)
 	
-	var path_anim = Utils.get_asset_root() % ("ani/%s" % path_ani_relative)
-	_sprite_root = Lt2AssetSprite.new(path_anim)
+	_sprite_root = Lt2AssetSprite.new(path_ani_relative)
 	
 	_node_add 	= Sprite2D.new()
 	_node_add.region_enabled = true
@@ -49,8 +48,7 @@ func _init(path_ani_relative : String):
 			_maximal_size_px.y = max(region.size.y, _maximal_size_px.y)
 	
 	if _sprite_root.get_subanimation_name() != "":
-		_sprite_add = Lt2AssetSprite.new(Utils.get_asset_root() %
-											("ani/sub/%s.spr" % _sprite_root.get_subanimation_name()))
+		_sprite_add = Lt2AssetSprite.new("sub/%s.spr" % _sprite_root.get_subanimation_name())
 		if _sprite_add.get_spritesheet() != null:
 			_node_add.texture = ImageTexture.create_from_image(_sprite_add.get_spritesheet())
 			
@@ -194,3 +192,6 @@ func set_flip_state(flipped : bool):
 
 func set_transparency(alpha : float):
 	_canvas_root.self_modulate = Color(1,1,1,alpha)
+
+func get_transparency() -> float:
+	return _canvas_root.self_modulate.a

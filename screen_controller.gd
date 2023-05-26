@@ -4,8 +4,6 @@ extends Node2D
 
 # TODO - Check room draw overlays on how to center images correctly
 
-const Utils 	= preload("res://utils.gd")
-
 @export var use_smoothstep 		: bool 	= true
 @export var duration_default 	: float = 4
 
@@ -18,6 +16,8 @@ var _timer_bs			: Timer		= Timer.new()
 @onready var _node_fade_bs 	: ColorRect 	= get_parent().get_node("control_fade/fade_bs")
 @onready var _node_bg_ts 	: TextureRect 	= get_parent().get_node("control_bg/bg_ts")
 @onready var _node_bg_bs	: TextureRect 	= get_parent().get_node("control_bg/bg_bs")
+
+var void_bg : ImageTexture = ImageTexture.create_from_image(Image.create(1,1,false,Image.FORMAT_L8))
 
 var _fade_target_bs : float = 1.0
 var _fade_target_ts : float = 1.0
@@ -54,7 +54,7 @@ func _ready():
 	add_child(_timer_ts)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	var progress : float = 0
 	if _timer_ts.is_stopped():
 		_set_opacity_ts(_fade_target_ts)
@@ -75,28 +75,26 @@ func _process(delta):
 			_set_opacity_bs(lerp(_fade_target_bs, abs(_fade_target_bs - 1), progress))
 
 func set_background_bs(path_bg_relative : String) -> bool:
-	var path_bg = Utils.path_resolve_bg(path_bg_relative)
-	path_bg = path_bg.substr(0, len(path_bg) - 3) + "png"
+	var path_bg = path_bg_relative.substr(0, len(path_bg_relative) - 3) + "png"
+	path_bg = Lt2Utils.get_asset_path("bg/%s" % path_bg)
 	var bg = Image.load_from_file(path_bg)
 	
 	if bg == null:
-		_node_bg_bs.hide()
+		_node_bg_bs.texture = void_bg
 		return false
-	_node_bg_bs.show()
 	bg = ImageTexture.create_from_image(bg)
 	_node_bg_bs.texture = bg
 	set_background_bs_overlay(0)
 	return true
 
 func set_background_ts(path_bg_relative : String) -> bool:
-	var path_bg = Utils.path_resolve_bg(path_bg_relative)
-	path_bg = path_bg.substr(0, len(path_bg) - 3) + "png"
+	var path_bg = path_bg_relative.substr(0, len(path_bg_relative) - 3) + "png"
+	path_bg = Lt2Utils.get_asset_path("bg/%s" % path_bg)
 	var bg = Image.load_from_file(path_bg)
 	
 	if bg == null:
-		_node_bg_ts.hide()
+		_node_bg_ts.texture = void_bg
 		return false
-	_node_bg_ts.show()
 	bg = ImageTexture.create_from_image(bg)
 	_node_bg_ts.texture = bg
 	set_background_ts_overlay(0)
@@ -121,6 +119,36 @@ func shake_ts(duration : float):
 
 func flash_bs(duration : float):
 	pass
+
+func configure_fullscreen():
+	_node_bg_ts.hide()
+	_node_fade_ts.hide()
+	
+	for node in [_node_bg_bs, _node_fade_bs]:
+		node.size = Lt2Constants.RESOLUTION_TARGET
+		node.global_position = -Lt2Constants.RESOLUTION_TARGET / 2
+	
+	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+
+func configure_room_mode():
+	_node_bg_ts.show()
+	_node_fade_ts.show()
+	
+	for node in [_node_bg_bs, _node_fade_bs]:
+		node.size.x = Lt2Constants.RESOLUTION_TARGET.x
+		@warning_ignore("integer_division")
+		node.size.y = Lt2Constants.RESOLUTION_TARGET.y / 2
+		@warning_ignore("integer_division")
+		node.global_position.x = -Lt2Constants.RESOLUTION_TARGET.x / 2
+		node.global_position.y = 0
+	
+	for node in [_node_bg_ts, _node_fade_ts]:
+		node.size.x = Lt2Constants.RESOLUTION_TARGET.x
+		@warning_ignore("integer_division")
+		node.size.y = Lt2Constants.RESOLUTION_TARGET.y / 2
+		node.global_position = -Lt2Constants.RESOLUTION_TARGET / 2
+	
+	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 
 # TODO - Both fading functions aren't amazingly safe or well animated
 #        This is pretty rudimentary but does the job

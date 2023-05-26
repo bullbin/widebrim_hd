@@ -1,11 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://chjyrf0f17hhk"]
+[gd_scene load_steps=5 format=3 uid="uid://chjyrf0f17hhk"]
 
 [ext_resource type="Script" path="res://gamemode_event.gd" id="1_h4qt3"]
 [ext_resource type="Script" path="res://script_executor.gd" id="2_6xwv4"]
+[ext_resource type="Script" path="res://twindow.gd" id="2_bmsn8"]
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_s4e2l"]
-width = 768
-height = 576
+[sub_resource type="ImageTexture" id="ImageTexture_43s1b"]
 
 [node name="gamemode_event" type="Node2D"]
 script = ExtResource("1_h4qt3")
@@ -13,16 +12,22 @@ script = ExtResource("1_h4qt3")
 [node name="root_character" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = -320.0
-offset_right = -320.0
-scale = Vector2(0.5, 0.5)
+offset_left = -384.0
+offset_right = -384.0
 
 [node name="TextureRect" type="TextureRect" parent="root_character"]
-visible = false
 layout_mode = 0
 offset_right = 768.0
 offset_bottom = 576.0
-texture = SubResource("NoiseTexture2D_s4e2l")
+texture = SubResource("ImageTexture_43s1b")
+
+[node name="twindow" type="Node2D" parent="."]
+script = ExtResource("2_bmsn8")
+
+[node name="text" type="Label" parent="twindow"]
+offset_right = 40.0
+offset_bottom = 23.0
+visible_characters = 0
 
 [node name="script_executor" type="Node2D" parent="."]
 script = ExtResource("2_6xwv4")

@@ -9,5 +9,5 @@ func _ready():
 
 func _on_resize():
 	var size = get_viewport_rect().size
-	var zoom = Vector2(size.x / target_virtual_res.x, size.y / target_virtual_res.y)
-	set_zoom(Vector2(min(zoom.x, zoom.y), min(zoom.x, zoom.y)))
+	var viewport_zoom = Vector2(size.x / target_virtual_res.x, size.y / target_virtual_res.y)
+	set_zoom(Vector2(min(viewport_zoom.x, viewport_zoom.y), min(viewport_zoom.x, viewport_zoom.y)))

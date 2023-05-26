@@ -6,8 +6,6 @@ const LT2_ANIM_COUNT_VARS 	: int = 16
 const LT2_ANIM_VAR_LEN		: int = 8
 const LT2_ANIM_VAR_EMPTY	: Array[int] = [0,0,0,0,0,0,0,0]
 
-const Utils 	= preload("res://utils.gd")
-
 var _spritesheet	: Image				= null
 var _frames 		: Array[Rect2i] 	= []
 var _anims 			: Array[Lt2TypeAnimation] 	= []
@@ -19,8 +17,8 @@ var _sub_anim_name 	: String			= ""
 func _init(path_arc : String):
 	path_arc = path_arc.substr(0, len(path_arc) - 3)
 	
-	var path_spritesheet = path_arc + "png"
-	var path_anim_spec = path_arc + "spr"
+	var path_spritesheet = Lt2Utils.get_asset_path("ani/%s" % (path_arc + "png"))
+	var path_anim_spec = path_spritesheet.substr(0, len(path_spritesheet) - 3) + "spr"
 	
 	var file = FileAccess.open(path_anim_spec, FileAccess.READ)
 	if file != null:
@@ -33,7 +31,6 @@ func _init(path_arc : String):
 		var width;
 		var height;
 		var buffer;
-		var img_sprite;
 		
 		for idx_image in range(count_image):
 			buffer = file.get_buffer(8)
@@ -106,14 +103,6 @@ func _init(path_arc : String):
 				# TODO - Bad encoding!
 				_sub_anim_name = file.get_buffer(128).get_string_from_utf8()
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
-
 func get_spritesheet() -> Image:
 	return _spritesheet
 
@@ -135,7 +124,7 @@ func get_anim_by_index(idx_anim : int) -> Lt2TypeAnimation:
 
 func get_anim_by_name(name_anim : String) -> Lt2TypeAnimation:
 	for anim in _anims:
-		if Utils.lt2_string_compare(anim.get_name(), name_anim):
+		if Lt2Utils.lt2_string_compare(anim.get_name(), name_anim):
 			return anim
 	return null
 
@@ -147,7 +136,7 @@ func get_variable_by_index(idx_var : int) -> Array:
 func get_variable_by_name(name_var : String) -> Array:
 	var idx_var = 0
 	for name in _var_names:
-		if Utils.lt2_string_compare(name, name_var):
+		if Lt2Utils.lt2_string_compare(name, name_var):
 			return _var_data[idx_var]
 		idx_var += 1
 	return LT2_ANIM_VAR_EMPTY

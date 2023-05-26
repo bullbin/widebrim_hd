@@ -6,7 +6,7 @@ var _opcodes 	= []
 var _operands 	= []
 
 func _init(path_gds : String, read_as_talkscript : bool):
-	var file = FileAccess.open(path_gds, FileAccess.READ)
+	var file = FileAccess.open(Lt2Utils.get_asset_path(path_gds), FileAccess.READ)
 	if file != null:
 		var length = file.get_32() + 4
 		if read_as_talkscript:

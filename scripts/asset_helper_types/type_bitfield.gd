@@ -20,6 +20,7 @@ func get_bit(idx_bit : int) -> bool:
 	if idx_bit < 0:
 		return false
 	
+	@warning_ignore("integer_division")
 	var idx_byte = idx_bit / 8
 	idx_bit = idx_bit - (idx_byte * 8)
 	var val = get_byte(idx_byte)
@@ -27,6 +28,7 @@ func get_bit(idx_bit : int) -> bool:
 	return val == 1
 
 func set_bit(idx_bit : int, val : bool):
+	@warning_ignore("integer_division")
 	var idx_byte = idx_bit / 8
 	if idx_byte < 0 or idx_byte >= len(_byte_field):
 		return

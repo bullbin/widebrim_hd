@@ -178,7 +178,12 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_FIRST_TOUCH:
 			_state.first_touch_enabled = true
-			
+		
+		Lt2Constants.SCRIPT_OPERANDS.SET_FULL_SCREEN:
+			if operands[0] == 1:
+				_screen_controller.configure_fullscreen()
+			else:
+				_screen_controller.configure_room_mode()
 		_:
 			return false
 	return true

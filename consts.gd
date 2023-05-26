@@ -1,5 +1,41 @@
 class_name Lt2Constants
 
+enum LANGUAGES {
+	JP,
+	EN_EU,
+	EN_US,
+	ES,
+	FR,
+	IT,
+	DE,
+	NL,
+	KO
+}
+
+const LANGUAGE_TO_LANGUAGE = {
+	LANGUAGES.JP 	: "jp",
+	LANGUAGES.EN_EU : "en",
+	LANGUAGES.EN_US : "en",
+	LANGUAGES.ES 	: "es",
+	LANGUAGES.FR 	: "fr",
+	LANGUAGES.IT 	: "it",
+	LANGUAGES.DE 	: "de",
+	LANGUAGES.NL 	: "nl",
+	LANGUAGES.KO	: "ko"
+}
+
+const LANGUAGE_TO_REGION = {
+	LANGUAGES.JP	: "jp",
+	LANGUAGES.EN_EU	: "eu",
+	LANGUAGES.EN_US : "us",
+	LANGUAGES.ES 	: "eu",
+	LANGUAGES.FR 	: "eu",
+	LANGUAGES.IT 	: "eu",
+	LANGUAGES.DE 	: "eu",
+	LANGUAGES.NL 	: "eu",
+	LANGUAGES.KO 	: "eu"
+}
+
 enum SCRIPT_OPERANDS {
 	INVALID,
 	EXIT_SCRIPT,
@@ -242,4 +278,8 @@ const SCREEN_CONTROLLER_DEFAULT_FADE 	: float 	= 0.25
 
 const TIMING_LT2_TO_MILLISECONDS		: float 	= 1.0/60.0
 
-const RESOLUTION_TARGET 				: Vector2i = Vector2i(640, 1252)
+# 640 1024
+# 768 1136
+# 640 1252
+const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1252)
+const CONFIG_GAME_LANGUAGE : LANGUAGES = LANGUAGES.EN_EU

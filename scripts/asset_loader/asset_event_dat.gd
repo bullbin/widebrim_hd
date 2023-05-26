@@ -11,7 +11,7 @@ var characters_visibility 	: Array[bool] 	= [false,false,false,false,false,false
 var characters_idx_anim 	: Array[int] 	= [0,0,0,0,0,0,0,0]
 
 func _init(path_data : String):
-	var file = FileAccess.open(path_data, FileAccess.READ)
+	var file = FileAccess.open(Lt2Utils.get_asset_path(path_data), FileAccess.READ)
 	if file != null:
 		map_id_bs = file.get_16()
 		map_id_ts = file.get_16()
