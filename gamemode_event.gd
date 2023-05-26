@@ -10,8 +10,8 @@ var obj_state 				: Lt2State 				= null
 func load_init(state : Lt2State, screen_controller : Lt2ScreenController):
 	node_screen_controller = screen_controller
 	obj_state = state # 20023
-	# obj_state.id_event = 10030
-	obj_state.id_event = 16020
+	obj_state.id_event = 10030
+	# obj_state.id_event = 16020
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

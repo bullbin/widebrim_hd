@@ -1,10 +1,20 @@
-[gd_scene load_steps=5 format=3 uid="uid://chjyrf0f17hhk"]
+[gd_scene load_steps=7 format=3 uid="uid://chjyrf0f17hhk"]
 
 [ext_resource type="Script" path="res://gamemode_event.gd" id="1_h4qt3"]
 [ext_resource type="Script" path="res://script_executor.gd" id="2_6xwv4"]
 [ext_resource type="Script" path="res://twindow.gd" id="2_bmsn8"]
+[ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="3_185be"]
 
-[sub_resource type="ImageTexture" id="ImageTexture_43s1b"]
+[sub_resource type="FontVariation" id="FontVariation_vgmtm"]
+base_font = ExtResource("3_185be")
+variation_embolden = 0.25
+
+[sub_resource type="LabelSettings" id="LabelSettings_esb4f"]
+line_spacing = 6.0
+font = SubResource("FontVariation_vgmtm")
+font_size = 31
+font_color = Color(0, 0, 0, 1)
+outline_color = Color(0.388235, 0.388235, 0.388235, 1)
 
 [node name="gamemode_event" type="Node2D"]
 script = ExtResource("1_h4qt3")
@@ -15,19 +25,18 @@ anchors_preset = 0
 offset_left = -384.0
 offset_right = -384.0
 
-[node name="TextureRect" type="TextureRect" parent="root_character"]
-layout_mode = 0
-offset_right = 768.0
-offset_bottom = 576.0
-texture = SubResource("ImageTexture_43s1b")
-
 [node name="twindow" type="Node2D" parent="."]
 script = ExtResource("2_bmsn8")
 
+[node name="CanvasGroup" type="CanvasGroup" parent="twindow"]
+
 [node name="text" type="Label" parent="twindow"]
-offset_right = 40.0
-offset_bottom = 23.0
-visible_characters = 0
+offset_right = 387.0
+offset_bottom = 129.0
+text = "But thinking on it now, the
+letter I received did mention
+something about this place."
+label_settings = SubResource("LabelSettings_esb4f")
 
 [node name="script_executor" type="Node2D" parent="."]
 script = ExtResource("2_6xwv4")

@@ -4,9 +4,10 @@ extends Node2D
 
 const Utils 	= preload("res://utils.gd")
 
-var _sprite_root 	: Lt2AssetSprite = null
-var _sprite_add 	: Lt2AssetSprite = null	# Recursive approach not needed - only 1 layer supported!
-var _canvas_root	: CanvasGroup = null
+var _sprite_root 	: Lt2AssetSprite 	= null
+var _sprite_add 	: Lt2AssetSprite 	= null	# Recursive approach not needed - only 1 layer supported!
+var _canvas_root	: CanvasGroup 		= null	# Render to own canvas is useful for layered sprites
+var _is_canvas_external : bool 			= false	# If using an external canvas, we must disable layer blend
 
 var _node_root		: Sprite2D	= null
 var _node_add		: Sprite2D 	= null
@@ -24,9 +25,13 @@ var _maximal_size_px	: Vector2i = Vector2i(0,0)
 
 var _pos_offset 		: Vector2 = Vector2(0,0)
 
-func _init(path_ani_relative : String):
-	_canvas_root = CanvasGroup.new()
-	add_child(_canvas_root)
+func _init(path_ani_relative : String, render_target : CanvasGroup = null):
+	if render_target == null:
+		_canvas_root = CanvasGroup.new()
+		add_child(_canvas_root)
+	else:
+		_canvas_root = render_target
+		_is_canvas_external = true
 	
 	_sprite_root = Lt2AssetSprite.new(path_ani_relative)
 	
@@ -191,7 +196,16 @@ func set_flip_state(flipped : bool):
 	set_flippable_position(position)
 
 func set_transparency(alpha : float):
-	_canvas_root.self_modulate = Color(1,1,1,alpha)
+	if _is_canvas_external:
+		_node_root.self_modulate.a = alpha
+		_node_add.self_modulate.a = alpha
+	else:
+		_canvas_root.self_modulate.a = alpha
 
 func get_transparency() -> float:
+	if _is_canvas_external:
+		return _node_root.self_modulate.a
 	return _canvas_root.self_modulate.a
+
+func get_canvas_root() -> CanvasGroup:
+	return _canvas_root

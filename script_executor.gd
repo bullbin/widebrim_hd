@@ -8,6 +8,8 @@ const PATH_ANIM_CHAR	: String = "eventchr/chr%d.arc"
 var _data 		: Lt2AssetEventData 			= null
 var _characters : Array[Lt2GodotCharController] = []
 
+@onready var _node_twindow = get_parent().get_node("twindow")
+
 func _char_in_slot(idx_char) -> bool:
 	return 0 <= idx_char and idx_char < len(_characters)
 
@@ -40,6 +42,9 @@ func _ready():
 		screen_controller.set_background_bs("map/main%d.bgx" % _data.map_id_bs)
 	if _data.map_id_ts != 0:
 		screen_controller.set_background_bs("event/sub%d.bgx" % _data.map_id_ts)
+	
+	_node_twindow.build_character_map(_data, _characters)
+	_node_twindow.completed.connect(resume_execution)
 	
 	match _data.intro_mode:
 		1:
@@ -76,6 +81,15 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 					duration_in_frames *= Lt2Constants.TIMING_LT2_TO_MILLISECONDS
 					_characters[operands[0]].fade_visibility(operands[1] >= 0, duration_in_frames,
 															 Callable(self, "resume_execution"))
+			
+			Lt2Constants.SCRIPT_OPERANDS.TEXT_WINDOW:
+				_node_twindow.load_talkscript(operands[0])
+				_node_twindow.switch_to_dialogue()
+				pause_execution()
+			
+			Lt2Constants.SCRIPT_OPERANDS.SET_VOICE_ID:
+				_state.id_voice = operands[0]
+			
 			_:
 				return false
 	return true

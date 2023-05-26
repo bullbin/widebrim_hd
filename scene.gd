@@ -17,7 +17,7 @@ func _ready():
 	
 	node_screen_controller.configure_room_mode()
 	
-	DisplayServer.window_set_size(Lt2Constants.RESOLUTION_TARGET / 2)
+	DisplayServer.window_set_size(Lt2Constants.RESOLUTION_TARGET / 1.5)
 	
 	var gamemode = load("res://gamemode_event.tscn").instantiate()
 	gamemode.load_init(state, node_screen_controller)

@@ -1,0 +1,39 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://dblx674q8rv20"
+path="res://.godot/imported/Roboto-Medium.ttf-bcefa21a9ac6633f28ae510035797725.fontdata"
+
+[deps]
+
+source_file="res://font/Roboto-Medium.ttf"
+dest_files=["res://.godot/imported/Roboto-Medium.ttf-bcefa21a9ac6633f28ae510035797725.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=2
+generate_mipmaps=true
+multichannel_signed_distance_field=false
+msdf_pixel_range=8
+msdf_size=32
+allow_system_fallback=true
+force_autohinter=false
+hinting=0
+subpixel_positioning=3
+oversampling=0.0
+Fallbacks=null
+fallbacks=[]
+Compress=null
+compress=true
+preload=[{
+"chars": [],
+"glyphs": [],
+"name": "New Configuration",
+"size": Vector2i(16, 0),
+"variation_embolden": 0.0
+}]
+language_support={}
+script_support={}
+opentype_features={}

@@ -4,6 +4,7 @@ extends Lt2AssetSaveSlot
 
 var id_event : int = 0
 var id_movie : int = 0
+var id_voice : int = -1
 
 var _gamemode 		: Lt2Constants.GAMEMODES = Lt2Constants.GAMEMODES.INVALID
 var _gamemode_next 	: Lt2Constants.GAMEMODES = Lt2Constants.GAMEMODES.INVALID
