@@ -180,8 +180,13 @@ func get_maximal_dimensions() -> Vector2i:
 	return _maximal_size_px
 
 func set_flippable_position(pos : Vector2):
-	position.x = pos.x + _pos_offset.x
-	position.y = pos.y
+	if _is_canvas_external:
+		_node_root.position.x = pos.x + _pos_offset.x
+		_node_root.position.y = pos.y
+		# TODO - Support subanimation
+	else:
+		position.x = pos.x + _pos_offset.x
+		position.y = pos.y
 
 func get_flippable_position() -> Vector2:
 	return Vector2(position.x - _pos_offset.x, position.y)

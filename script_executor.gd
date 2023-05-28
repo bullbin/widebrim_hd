@@ -22,6 +22,9 @@ func _ready():
 	var id_event_main = state.id_event / 1000
 	var id_event_sub = state.id_event % 1000
 	
+	# TODO - Conditions (see widebrim)
+	state.set_gamemode(Lt2Constants.GAMEMODES.ROOM)
+	
 	var path_script = PATH_EVENT_SCRIPT % [id_event_main, id_event_sub]
 	var path_data = PATH_EVENT_DATA % [id_event_main, id_event_sub]
 	

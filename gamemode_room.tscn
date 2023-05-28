@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwiickfe2ytul"]
+
+[ext_resource type="Script" path="res://gamemode_room.gd" id="1_3rwna"]
+
+[node name="gamemode_room" type="Node2D"]
+script = ExtResource("1_3rwna")

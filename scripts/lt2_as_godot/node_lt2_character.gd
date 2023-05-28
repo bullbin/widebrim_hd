@@ -9,6 +9,8 @@ const PATH_ANIM_CHAR	: String 	= "eventchr/chr%d.arc"
 var idx_char 			: int		= 0
 var idx_active_anim		: int 		= 0
 var is_talking			: bool		= false
+var pos_slot			: int = 0
+var target_visibility	: bool = true
 
 # Verified against game binary
 const SLOT_OFFSET = {0:0xf8,
@@ -31,6 +33,7 @@ func _ready():
 	add_child(node_char)
 	node_fade = CanvasFadeController.new()
 	node_char.get_canvas_root().add_child(node_fade)
+	set_char_position(0)
 
 func set_animation_from_name(name_anim : String):
 	if node_char.set_animation_from_name(name_anim):
@@ -72,6 +75,10 @@ func set_char_position(slot : int):
 			target_position.y -= node_char.get_maximal_dimensions().y
 		
 		node_char.set_flippable_position(target_position)
+		pos_slot = slot
+
+func get_char_position() -> int:
+	return pos_slot
 
 func do_shake(duration : float):
 	pass
@@ -81,12 +88,17 @@ func set_visibility(showing : bool):
 		node_fade.fade_visibility(1.0, 0, Callable())
 	else:
 		node_fade.fade_visibility(0.0, 0, Callable())
+	target_visibility = showing
 
 func fade_visibility(showing : bool, duration : float, callback : Callable):
 	if showing:
 		node_fade.fade_visibility(1.0, duration, callback)
 	else:
 		node_fade.fade_visibility(0.0, duration, callback)
+	target_visibility = showing
+
+func get_visibility() -> bool:
+	return target_visibility
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

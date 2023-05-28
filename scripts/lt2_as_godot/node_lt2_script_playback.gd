@@ -152,7 +152,8 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			_screen_controller.fade_in_bs(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
 		
 		Lt2Constants.SCRIPT_OPERANDS.FLASH_SCREEN:
-			_screen_controller.flash_bs(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+			# TODO - Timing
+			_screen_controller.flash_bs(Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.CHECK_COUNTER_AUTO_EVENT:
 			if 0 <= operands[0] and operands[0] < 128:
