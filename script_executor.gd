@@ -93,6 +93,13 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			Lt2Constants.SCRIPT_OPERANDS.SET_VOICE_ID:
 				_state.id_voice = operands[0]
 			
+			Lt2Constants.SCRIPT_OPERANDS.WAIT_FRAME2:
+				var entry = _state.dlz_tm_def.find_entry(operands[0])
+				if entry != null:
+					_delay_time = true
+					_delay_by_time_active = entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
+					pause_execution()	
+			
 			_:
 				return false
 	return true

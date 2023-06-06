@@ -1,6 +1,6 @@
 class_name Lt2AssetEventData
 
-extends Object
+extends RefCounted
 
 var map_id_bs 				: int 			= 0
 var map_id_ts 				: int 			= 0

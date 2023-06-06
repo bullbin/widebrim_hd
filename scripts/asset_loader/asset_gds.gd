@@ -1,6 +1,6 @@
 class_name Lt2AssetScript
 
-extends Object
+extends RefCounted
 
 var _opcodes 	= []
 var _operands 	= []

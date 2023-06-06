@@ -1,6 +1,6 @@
 class_name AddressableBitField
 
-extends Object
+extends RefCounted
 
 var _byte_field : PackedByteArray = PackedByteArray()
 
@@ -53,3 +53,9 @@ func set_byte(idx_byte : int, val : int):
 		return
 	val = val & 0xff
 	_byte_field.set(idx_byte, val)
+
+func get_bit_length() -> int:
+	return len(_byte_field) * 8
+
+func get_byte_length() -> int:
+	return len(_byte_field)

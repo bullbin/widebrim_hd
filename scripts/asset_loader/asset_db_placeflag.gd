@@ -1,6 +1,6 @@
 class_name Lt2DatabasePlaceFlag
 
-extends Object
+extends RefCounted
 
 const COUNT_MAX_SUBROOMS = 16
 const COUNT_MAX_ROOMS = 128

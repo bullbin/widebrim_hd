@@ -1,4 +1,6 @@
-extends Object
+class_name Lt2DatabaseStoryFlag
+
+extends RefCounted
 
 const MAX_COUNT_CHAPTERS = 256
 const MAX_COUNT_CONDITIONS = 8

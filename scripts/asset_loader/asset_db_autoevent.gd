@@ -1,6 +1,6 @@
 class_name Lt2DatabaseAutoEvent
 
-extends Object
+extends RefCounted
 
 const COUNT_MAX_ROOMS 				= 128
 const COUNT_MAX_AUTOEVENTS			= 8
@@ -11,16 +11,15 @@ class AutoEventRoomEntry:
 	var chapter_end 	: int = -1
 
 class AutoEventRoomCollection:
-	extends Object
-
 	var _conditions : Array[AutoEventRoomEntry] = []
 	
 	func get_entry(chapter : int) -> AutoEventRoomEntry:
+		var output : AutoEventRoomEntry = null
 		for entry in _conditions:
 			if entry.chapter_start <= chapter and entry.chapter_end >= chapter:
 				if entry.chapter_start != 0 or entry.chapter_end != 0:
-					return entry
-		return null
+					output = entry
+		return output
 	
 	func add_entry(entry : AutoEventRoomEntry):
 		_conditions.append(entry)

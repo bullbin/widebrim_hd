@@ -20,5 +20,10 @@ func _ready():
 	DisplayServer.window_set_size(Lt2Constants.RESOLUTION_TARGET / 1.5)
 	
 	var gamemode = load("res://gamemode_event.tscn").instantiate()
+	gamemode = load("res://gamemode_room.tscn").instantiate()
+	
+	#print(state.dlz_tm_def.find_entry(1))
+	#print(state.dlz_tm_def.find_entry(1).frame_count)
+	
 	gamemode.load_init(state, node_screen_controller)
 	node_gamemode.add_child(gamemode)

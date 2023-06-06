@@ -2,8 +2,6 @@ class_name Lt2GodotScriptBase
 
 extends Node2D
 
-const Utils = preload("res://utils.gd")
-
 signal script_finished;
 
 const Lt2ScreenController 	= preload("res://screen_controller.gd")
@@ -60,12 +58,12 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_GAME_MODE:
 			for key in Lt2Constants.STRING_TO_GAMEMODE_VALUE.keys():
-				if Utils.lt2_string_compare(key, operands[0]):
+				if Lt2Utils.lt2_string_compare(key, operands[0]):
 					_state.set_gamemode(Lt2Constants.STRING_TO_GAMEMODE_VALUE.get(key))
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_END_GAME_MODE:
 			for key in Lt2Constants.STRING_TO_GAMEMODE_VALUE.keys():
-				if Utils.lt2_string_compare(key, operands[0]):
+				if Lt2Utils.lt2_string_compare(key, operands[0]):
 					_state.set_gamemode_next(Lt2Constants.STRING_TO_GAMEMODE_VALUE.get(key))
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_MOVIE_NUM:

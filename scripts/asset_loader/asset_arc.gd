@@ -1,6 +1,6 @@
 class_name Lt2AssetSprite
 
-extends Object
+extends RefCounted
 
 const LT2_ANIM_COUNT_VARS 	: int = 16
 const LT2_ANIM_VAR_LEN		: int = 8

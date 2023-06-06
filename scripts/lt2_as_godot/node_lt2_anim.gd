@@ -2,8 +2,6 @@ class_name Lt2GodotAnimation
 
 extends Node2D
 
-const Utils 	= preload("res://utils.gd")
-
 var _sprite_root 	: Lt2AssetSprite 	= null
 var _sprite_add 	: Lt2AssetSprite 	= null	# Recursive approach not needed - only 1 layer supported!
 var _canvas_root	: CanvasGroup 		= null	# Render to own canvas is useful for layered sprites
