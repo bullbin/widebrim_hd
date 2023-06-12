@@ -33,7 +33,8 @@ func _ready():
 		_load_room_data()
 
 func _load_room_data():
-	pass
+	_update_subroom()
+	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
 	
 func _update_chapter():
 	var idx_chapter = obj_state.db_storyflag.get_group_index_from_chapter(obj_state.chapter)

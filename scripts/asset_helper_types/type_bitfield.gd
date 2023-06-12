@@ -59,3 +59,10 @@ func get_bit_length() -> int:
 
 func get_byte_length() -> int:
 	return len(_byte_field)
+
+func write_contents(file : FileAccess):
+	file.store_buffer(_byte_field)
+
+func read_contents(file : FileAccess):
+	for idx_byte in range(len(_byte_field)):
+		_byte_field.set(idx_byte, file.get_8())

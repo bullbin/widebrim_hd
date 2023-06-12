@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cpi2vwtn5vn02"]
+
+[ext_resource type="Script" path="res://gamemode_movie.gd" id="1_8g577"]
+
+[node name="gamemode_movie" type="Node2D"]
+script = ExtResource("1_8g577")

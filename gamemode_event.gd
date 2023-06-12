@@ -1,14 +1,31 @@
 extends Lt2GamemodeBaseClass
 
-func load_init(state : Lt2State, screen_controller : Lt2ScreenController):
-	super.load_init(state, screen_controller)
-	obj_state.id_event = 10030
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	get_node("script_executor").script_finished.connect(_terminate)
 
 func _do_on_complete():
+	# TODO - Set goal information, do Mokuteki window
+	
+	if obj_state.id_event_immediate > 0:
+		# TODO - One more check
+		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
+		obj_state.id_event = obj_state.id_event_immediate
+		obj_state.id_event_immediate = -1
+	
+		# TODO - BGM fadeout, wait Vsync, fadeout screen, wait Vsync
+	else:
+		# TODO - BGM fadeout for custom sound set
+		# TODO - Check if challenge mode active, do challenge mode
+		
+		if obj_state.id_event == 18480 and obj_state.get_id_room() == 63:
+			# TODO - Remove constants
+			obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
+			obj_state.id_event = 18000
+		else:
+			# TODO - Tea checks, some other checks
+			pass
+	
 	completed.emit()
 
 func _terminate():

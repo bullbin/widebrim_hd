@@ -33,6 +33,11 @@ func _ready():
 	
 	load_init(state, get_parent().node_screen_controller, script)
 	
+	# TODO - Unknown when this is done, also should not be done here (room only...) with storyflag
+	var ev_inf_entry = state.dlz_ev_inf2.find_entry(state.id_event)
+	if ev_inf_entry != null and ev_inf_entry.idx_event_viewed != -1:
+		state.flags_event_viewed.set_bit(ev_inf_entry.idx_event_viewed, true)
+	
 	for idx_char in range(8):
 		_characters.append(Lt2GodotCharController.new(_data.characters[idx_char]))
 		get_parent().get_node("root_character").add_child(_characters[idx_char])
@@ -41,10 +46,8 @@ func _ready():
 		_characters[idx_char].set_visibility(_data.characters_visibility[idx_char])
 		_characters[idx_char].set_char_position(_data.characters_slot[idx_char])
 	
-	if _data.map_id_bs != 0:
-		screen_controller.set_background_bs("map/main%d.bgx" % _data.map_id_bs)
-	if _data.map_id_ts != 0:
-		screen_controller.set_background_bs("event/sub%d.bgx" % _data.map_id_ts)
+	screen_controller.set_background_bs("map/main%d.bgx" % _data.map_id_bs)
+	screen_controller.set_background_bs("event/sub%d.bgx" % _data.map_id_ts)
 	
 	_node_twindow.build_character_map(_data, _characters)
 	_node_twindow.completed.connect(resume_execution)

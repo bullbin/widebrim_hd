@@ -263,6 +263,7 @@ const STRING_TO_GAMEMODE_VALUE = {"room"		:GAMEMODES.ROOM,
 								"puzzle"        :GAMEMODES.PUZZLE,
 								"movie"         :GAMEMODES.MOVIE,
 								"narration"     :GAMEMODES.NARRATION,
+								"narrationfull" :GAMEMODES.NARRATION, # TODO - return vals in function
 								"menu"          :GAMEMODES.BAG,
 								"staff"         :GAMEMODES.STAFF,
 								"name"          :GAMEMODES.HAMSTER_NAME,
@@ -283,3 +284,6 @@ const TIMING_LT2_TO_MILLISECONDS		: float 	= 1.0/60.0
 # 640 1252
 const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1252)
 const CONFIG_GAME_LANGUAGE : LANGUAGES = LANGUAGES.EN_EU
+
+const DEBUG_SAVE_PATH : String = "res://state.sav"
+const DEBUG_SAVE_ENABLE : bool = true
