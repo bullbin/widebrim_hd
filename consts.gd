@@ -280,9 +280,12 @@ const SCREEN_CONTROLLER_DEFAULT_FADE 	: float 	= 0.25
 const TIMING_LT2_TO_MILLISECONDS		: float 	= 1.0/60.0
 
 # 640 1024
+# Not stored?? but 768x1024
 # 768 1136
 # 640 1252
-const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1252)
+
+# Full res is 768, 1252
+const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1136)
 const CONFIG_GAME_LANGUAGE : LANGUAGES = LANGUAGES.EN_EU
 
 const DEBUG_SAVE_PATH : String = "res://state.sav"

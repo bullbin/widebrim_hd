@@ -4,8 +4,6 @@ extends Node2D
 
 signal script_finished;
 
-const Lt2ScreenController 	= preload("res://screen_controller.gd")
-
 var _screen_controller 		: Lt2ScreenController 	= null
 var _script 				: Lt2AssetScript 		= null
 var _state					: Lt2State				= null

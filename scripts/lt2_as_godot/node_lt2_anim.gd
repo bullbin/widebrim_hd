@@ -23,7 +23,15 @@ var _maximal_size_px	: Vector2i = Vector2i(0,0)
 
 var _pos_offset 		: Vector2 = Vector2(0,0)
 
+var _has_init : bool = false
+
 func _init(path_ani_relative : String, render_target : CanvasGroup = null):
+	_deferred_init(path_ani_relative, render_target)
+
+func _deferred_init(path_ani_relative : String, render_target : CanvasGroup = null):
+	if _has_init:
+		return
+		
 	if render_target == null:
 		_canvas_root = CanvasGroup.new()
 		add_child(_canvas_root)
@@ -67,11 +75,14 @@ func _init(path_ani_relative : String, render_target : CanvasGroup = null):
 				_maximal_size_px.x = max(max_add_offset.x + region.size.x, _maximal_size_px.x)
 				_maximal_size_px.y = max(max_add_offset.y + region.size.y, _maximal_size_px.y)
 
+	_has_init = true
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	_elapsed_on_root += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
-	_elapsed_on_add += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
-	_force_redraw()
+	if _has_init:
+		_elapsed_on_root += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+		_elapsed_on_add += (delta / Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+		_force_redraw()
 	
 func _force_apply_anim_visibility_check():
 	# If no animation is applied, hide everything
@@ -161,30 +172,36 @@ func set_animation_from_index(index : int):
 	return false
 
 func get_active_animation_index() -> int:
-	for idx_anim in range(_sprite_root.get_count_anims()):
-		if _sprite_root.get_anim_by_index(idx_anim) == _anim_active_root:
-			return idx_anim
+	if _sprite_root != null:
+		for idx_anim in range(_sprite_root.get_count_anims()):
+			if _sprite_root.get_anim_by_index(idx_anim) == _anim_active_root:
+				return idx_anim
 	return -1
 
 func get_variable_as_vector_from_name(name_var : String) -> Vector2i:
-	var data = _sprite_root.get_variable_by_name(name_var)
-	return Vector2i(data[0], data[1])
+	if _sprite_root != null:
+		var data = _sprite_root.get_variable_by_name(name_var)
+		return Vector2i(data[0], data[1])
+	return Vector2i(0,0)
 	
 func get_variable_as_vector_from_index(idx_var : int) -> Vector2i:
-	var data = _sprite_root.get_variable_by_index(idx_var)
-	return Vector2i(data[0], data[1])
+	if _sprite_root != null:
+		var data = _sprite_root.get_variable_by_index(idx_var)
+		return Vector2i(data[0], data[1])
+	return Vector2i(0,0)
 
 func get_maximal_dimensions() -> Vector2i:
 	return _maximal_size_px
 
 func set_flippable_position(pos : Vector2):
-	if _is_canvas_external:
-		_node_root.position.x = pos.x + _pos_offset.x
-		_node_root.position.y = pos.y
-		# TODO - Support subanimation
-	else:
-		position.x = pos.x + _pos_offset.x
-		position.y = pos.y
+	if _has_init:
+		if _is_canvas_external:
+			_node_root.position.x = pos.x + _pos_offset.x
+			_node_root.position.y = pos.y
+			# TODO - Support subanimation
+		else:
+			position.x = pos.x + _pos_offset.x
+			position.y = pos.y
 
 func get_flippable_position() -> Vector2:
 	return Vector2(position.x - _pos_offset.x, position.y)
@@ -199,16 +216,19 @@ func set_flip_state(flipped : bool):
 	set_flippable_position(position)
 
 func set_transparency(alpha : float):
-	if _is_canvas_external:
-		_node_root.self_modulate.a = alpha
-		_node_add.self_modulate.a = alpha
-	else:
-		_canvas_root.self_modulate.a = alpha
+	if _has_init:
+		if _is_canvas_external:
+			_node_root.self_modulate.a = alpha
+			_node_add.self_modulate.a = alpha
+		else:
+			_canvas_root.self_modulate.a = alpha
 
 func get_transparency() -> float:
-	if _is_canvas_external:
-		return _node_root.self_modulate.a
-	return _canvas_root.self_modulate.a
+	if _has_init:
+		if _is_canvas_external:
+			return _node_root.self_modulate.a
+		return _canvas_root.self_modulate.a
+	return 0.0
 
 func get_canvas_root() -> CanvasGroup:
 	return _canvas_root

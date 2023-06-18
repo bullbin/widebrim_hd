@@ -1,6 +1,13 @@
 extends Lt2GamemodeBaseClass
 
 var _is_interactable : bool = false
+var _place_data : Lt2AssetPlaceData = null
+
+const PATH_DATA_PLACE : String = "place/data/n_place%d_%d.dat"
+@onready var _node_anim_root : Control = get_node("anim_root")
+
+var _node_bg_ani : Array[Lt2GodotAnimation] = []
+var _node_event_spawner : Array[Lt2GodotAnimation] = []
 
 func _has_autoevent() -> bool:
 	var collection = obj_state.db_autoevent.get_room_entries(obj_state.get_id_room())
@@ -24,6 +31,8 @@ func _has_autoevent() -> bool:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	node_screen_controller.configure_room_mode()
+	
 	if _has_autoevent():
 		# Will not have faded in, stop early.
 		print("AutoEvent %d" % obj_state.id_event)
@@ -35,6 +44,31 @@ func _ready():
 func _load_room_data():
 	_update_subroom()
 	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
+	#_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [obj_state.get_id_room(), obj_state.get_id_subroom()])
+	_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [8,2])
+	node_screen_controller.set_background_bs("map/main%d.bgx" % _place_data.id_bg_main)
+	node_screen_controller.set_background_ts("map/map%d.bgx" % _place_data.id_bg_sub)
+	node_screen_controller.fade_in()
+	
+	for bg_ani in _place_data.bg_anim:
+		var anim = Lt2GodotAnimation.new("bgani/%s" % bg_ani.name)
+		anim.set_flippable_position(bg_ani.pos)
+		anim.set_animation_from_index(1)
+		_node_anim_root.add_child(anim)
+		_node_bg_ani.append(anim)
+
+	for event_spawner in _place_data.event_spawners:
+		if event_spawner.id_image != 0:
+			var anim = Lt2GodotAnimation.new("eventobj/obj_%d.spr" % event_spawner.id_image)
+			anim.set_flippable_position(event_spawner.bounding.position)
+			anim.set_animation_from_index(1)
+			_node_anim_root.add_child(anim)
+			_node_event_spawner.append(anim)
+		else:
+			_node_event_spawner.append(null)
+
+func _parse_loaded_data():
+	pass
 	
 func _update_chapter():
 	var idx_chapter = obj_state.db_storyflag.get_group_index_from_chapter(obj_state.chapter)
