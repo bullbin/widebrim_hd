@@ -1,10 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://cwiickfe2ytul"]
+[gd_scene load_steps=11 format=3 uid="uid://cwiickfe2ytul"]
 
 [ext_resource type="Script" path="res://gamemode_room.gd" id="1_3rwna"]
 [ext_resource type="Script" path="res://scripts/lt2_as_godot/node_lt2_anim_deferred.gd" id="2_agq0w"]
+[ext_resource type="Script" path="res://scripts/lt2_as_godot/node_lt2_anim_button_deferred.gd" id="3_elekb"]
 [ext_resource type="Script" path="res://anim_root.gd" id="3_esd4w"]
 [ext_resource type="Script" path="res://tobj.gd" id="4_pblye"]
 [ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="5_47bwv"]
+[ext_resource type="Script" path="res://hud_ts.gd" id="6_5rt1k"]
+[ext_resource type="Script" path="res://hud_bs.gd" id="7_pgvww"]
 
 [sub_resource type="FontVariation" id="FontVariation_vgmtm"]
 base_font = ExtResource("5_47bwv")
@@ -20,9 +23,6 @@ outline_color = Color(0.388235, 0.388235, 0.388235, 1)
 [node name="gamemode_room" type="Node2D"]
 script = ExtResource("1_3rwna")
 
-[node name="Lt2GodotAnimationDeferred" type="Node2D" parent="."]
-script = ExtResource("2_agq0w")
-
 [node name="anim_root" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
@@ -32,28 +32,110 @@ script = ExtResource("3_esd4w")
 
 [node name="tobj" type="Control" parent="."]
 visible = false
+y_sort_enabled = true
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("4_pblye")
 
-[node name="tobj_window" type="Node2D" parent="tobj"]
+[node name="tobj_window" type="Control" parent="tobj"]
+y_sort_enabled = true
+anchors_preset = 0
 script = ExtResource("2_agq0w")
 path_animation = "tobj/window.spr"
 
-[node name="icon" type="Node2D" parent="tobj"]
+[node name="icon" type="Control" parent="tobj/tobj_window"]
+y_sort_enabled = true
+anchors_preset = 0
 script = ExtResource("2_agq0w")
 path_animation = "tobj/icon.spr"
 
-[node name="cursor_wait" type="Node2D" parent="tobj"]
+[node name="cursor_wait" type="Control" parent="tobj/tobj_window"]
+y_sort_enabled = true
+anchors_preset = 0
 script = ExtResource("2_agq0w")
 path_animation = "cursor_wait.spr"
 
-[node name="text" type="Label" parent="tobj"]
+[node name="text" type="Label" parent="tobj/tobj_window"]
+z_index = 1
+y_sort_enabled = true
 layout_mode = 0
-offset_right = 275.0
-offset_bottom = 129.0
+offset_right = 303.0
+offset_bottom = 43.0
 text = "You found a hint coin!"
 label_settings = SubResource("LabelSettings_pbh6t")
 vertical_alignment = 1
+
+[node name="hud_ts" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("6_5rt1k")
+
+[node name="mapicon" type="Control" parent="hud_ts"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_agq0w")
+path_animation = "map/mapicon.sbj"
+
+[node name="map_place" type="Control" parent="hud_ts"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_agq0w")
+path_animation = "map/map_place.spr"
+
+[node name="text_place" type="Label" parent="hud_ts/map_place"]
+z_index = 1
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "debug"
+label_settings = SubResource("LabelSettings_pbh6t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="map_purpose" type="Control" parent="hud_ts"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_agq0w")
+path_animation = "map/map_purpose.spr"
+
+[node name="text_purpose" type="Label" parent="hud_ts/map_purpose"]
+z_index = 1
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "hello world"
+label_settings = SubResource("LabelSettings_pbh6t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="toketa_nazo" type="Control" parent="hud_ts"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_agq0w")
+path_animation = "map/toketa_nazo.sbj"
+
+[node name="hud_bs" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("7_pgvww")
+
+[node name="movemode" type="Control" parent="hud_bs"]
+anchors_preset = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 104.0
+offset_bottom = 104.0
+script = ExtResource("3_elekb")
+path_animation = "map/movemode.spr"
+name_anim_click = "click"
+one_shot = true

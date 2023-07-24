@@ -1,19 +1,10 @@
 extends Control
 
-# TODO - Detect size
+@onready var _node_screen_controller : Lt2ScreenController = get_parent().node_screen_controller
 
-func _init():
-	# TODO - Adjust per image! Hardcoded doesn't feel right
-	var view_y = (Lt2Constants.RESOLUTION_TARGET.y / 2) - 620
-	
-	scale.x = float(Lt2Constants.RESOLUTION_TARGET.x) / 768
-	scale.y = float(Lt2Constants.RESOLUTION_TARGET.y / 2) / 620
-	scale.x = max(scale.x, scale.y)
-	
-	# If we have maximised the y-axis, don't offset Y
-	if scale.x == scale.y:
-		view_y = 0
-	
-	scale.y = scale.x
-	position.x = (-768 / 2) * scale.x
-	position.y = (view_y / 2) * scale.y
+func _ready():
+	_node_screen_controller.canvas_resize.connect(fix_position)
+	fix_position()
+
+func fix_position():
+	position = _node_screen_controller.get_anchor_loc_bs_full_corner()

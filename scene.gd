@@ -1,5 +1,7 @@
 extends Node2D
 
+# TODO - Block input events during fade activation
+
 @export var safety_margin : int = 32
 
 @onready var node_gamemode = get_node("control_gamemode")
@@ -13,17 +15,7 @@ func _exit_tree():
 		print("Exported save. Now quitting...")
 		
 func _ready():
-	var node_safe = get_node("debug_safe_area")
-	node_safe.size = Lt2Constants.RESOLUTION_TARGET
-	node_safe.global_position = -Lt2Constants.RESOLUTION_TARGET / 2
-	
-	var node_debug = get_node("debug_bad_area")
-	node_debug.size = Lt2Constants.RESOLUTION_TARGET + Vector2i(safety_margin, safety_margin)
-	node_debug.global_position = -node_debug.size / 2
-	
 	node_screen_controller.configure_room_mode()
-	
-	DisplayServer.window_set_size(Lt2Constants.RESOLUTION_TARGET / 1.5)
 	
 	if Lt2Constants.DEBUG_SAVE_ENABLE:
 		state.read_save(Lt2Constants.DEBUG_SAVE_PATH)

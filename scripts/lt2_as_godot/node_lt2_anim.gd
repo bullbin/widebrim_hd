@@ -1,6 +1,9 @@
 class_name Lt2GodotAnimation
 
-extends Node2D
+# TODO - Change to animation provider type structure so lookup table can be
+#        shared between multiple animations without duplication lookup and spritesheet
+
+extends Control
 
 var _sprite_root 	: Lt2AssetSprite 	= null
 var _sprite_add 	: Lt2AssetSprite 	= null	# Recursive approach not needed - only 1 layer supported!
@@ -74,6 +77,8 @@ func _deferred_init(path_ani_relative : String, render_target : CanvasGroup = nu
 				region = _sprite_add.get_frame_region(idx_frame)
 				_maximal_size_px.x = max(max_add_offset.x + region.size.x, _maximal_size_px.x)
 				_maximal_size_px.y = max(max_add_offset.y + region.size.y, _maximal_size_px.y)
+
+	size = _maximal_size_px
 
 	_has_init = true
 

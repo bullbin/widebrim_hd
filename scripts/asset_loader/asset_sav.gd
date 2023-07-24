@@ -113,10 +113,17 @@ func _init():
 	for _idx in range(COUNT_MAX_PUZZLE):
 		_puzzle_data.append(PuzzleState.new())
 
-func get_puzzle_state(idx_external : int) -> PuzzleState:
+func get_puzzle_state_external(idx_external : int) -> PuzzleState:
 	if idx_external > 0 and idx_external <= len(_puzzle_data):
 		return _puzzle_data[idx_external - 1]
 	return null
+
+func get_puzzle_solved_count() -> int:
+	var output = 0
+	for state in _puzzle_data:
+		if state.solved:
+			output += 1
+	return output
 
 func set_id_room(id : int):
 	_id_room = id

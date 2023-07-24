@@ -3,14 +3,14 @@ extends Control
 const OFFSET_TOBJ_TEXT	: int = 90
 
 @onready var node_window 	: Lt2GodotAnimationDeferred = get_node("tobj_window")
-@onready var node_icon 		: Lt2GodotAnimationDeferred = get_node("icon")
-@onready var node_wait 		: Lt2GodotAnimationDeferred = get_node("cursor_wait")
-@onready var node_text		: Label 					= get_node("text")
+@onready var node_icon 		: Lt2GodotAnimationDeferred = get_node("tobj_window/icon")
+@onready var node_wait 		: Lt2GodotAnimationDeferred = get_node("tobj_window/cursor_wait")
+@onready var node_text		: Label 					= get_node("tobj_window/text")
+@onready var _node_screen_controller : Lt2ScreenController = get_parent().node_screen_controller
 
 func _ready():
-	position.x = (Lt2Constants.RESOLUTION_TARGET.x - node_window.get_maximal_dimensions().x) / 2
-	position.y = ((Lt2Constants.RESOLUTION_TARGET.y / 2) - node_window.get_maximal_dimensions().y) / 2
-	position.x -= (Lt2Constants.RESOLUTION_TARGET.x / 2)
+	_node_screen_controller.canvas_resize.connect(center_tobj)
+	center_tobj()
 	
 	# TODO - Stored position is fairly different, 254,156
 	var icon_position = Vector2i(16, node_window.get_maximal_dimensions().y - node_icon.get_maximal_dimensions().y)
@@ -29,3 +29,7 @@ func _ready():
 	node_text.position.x = OFFSET_TOBJ_TEXT
 	node_text.size = node_window.get_maximal_dimensions()
 	node_text.size.x -= node_text.position.x
+
+func center_tobj():
+	position.x = - node_window.get_maximal_dimensions().x / 2
+	position.y = _node_screen_controller.get_anchor_loc_bs().y + _node_screen_controller.get_size_bs().y / 2 - node_window.get_maximal_dimensions().y / 2

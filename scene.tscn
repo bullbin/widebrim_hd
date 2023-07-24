@@ -1,13 +1,15 @@
-[gd_scene load_steps=4 format=3 uid="uid://3lu7uxj13xes"]
+[gd_scene load_steps=5 format=3 uid="uid://3lu7uxj13xes"]
 
 [ext_resource type="Script" path="res://scene.gd" id="1_q4vfu"]
-[ext_resource type="Script" path="res://cam_fs_auto_scale.gd" id="2_mjatt"]
+[ext_resource type="Script" path="res://split_bg.gd" id="2_s114v"]
 [ext_resource type="Script" path="res://screen_controller.gd" id="3_cwo7r"]
+[ext_resource type="Script" path="res://cam_ds_autozoom.gd" id="3_gjrui"]
 
 [node name="scene" type="Node2D"]
 script = ExtResource("1_q4vfu")
 
 [node name="debug_bad_area" type="ColorRect" parent="."]
+visible = false
 offset_left = -400.0
 offset_top = -592.0
 offset_right = 400.0
@@ -15,6 +17,7 @@ offset_bottom = 592.0
 color = Color(1, 0, 1, 1)
 
 [node name="debug_safe_area" type="ColorRect" parent="."]
+visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -26,25 +29,64 @@ offset_right = 384.0
 offset_bottom = 576.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
+color = Color(0, 1, 0, 1)
 
-[node name="control_bg" type="Node2D" parent="."]
-
-[node name="bg_ts" type="TextureRect" parent="control_bg"]
+[node name="split_bg" type="Control" parent="."]
 clip_contents = true
-offset_left = -320.0
-offset_top = -626.0
-offset_right = 320.0
-expand_mode = 1
-stretch_mode = 6
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -384.0
+offset_top = -568.0
+offset_right = 384.0
+offset_bottom = 568.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_s114v")
 
-[node name="bg_bs" type="TextureRect" parent="control_bg"]
+[node name="VBoxContainer" type="VBoxContainer" parent="split_bg"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="mask_ts" type="Control" parent="split_bg/VBoxContainer"]
 clip_contents = true
-offset_left = -320.0
-offset_right = 320.0
-offset_bottom = 626.0
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="bg_ts" type="TextureRect" parent="split_bg/VBoxContainer/mask_ts"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 3
+
+[node name="mask_bs" type="Control" parent="split_bg/VBoxContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="bg_bs" type="TextureRect" parent="split_bg/VBoxContainer/mask_bs"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 3
 
 [node name="control_gamemode" type="Node2D" parent="."]
 
@@ -66,7 +108,7 @@ offset_bottom = 626.0
 color = Color(0, 0, 0, 1)
 
 [node name="cam" type="Camera2D" parent="."]
-script = ExtResource("2_mjatt")
+script = ExtResource("3_gjrui")
 
 [node name="screen_controller" type="Node2D" parent="."]
 unique_name_in_owner = true

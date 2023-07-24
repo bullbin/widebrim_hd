@@ -2,7 +2,7 @@ class_name Lt2ScreenController
 
 extends Node2D
 
-# TODO - Check room draw overlays on how to center images correctly
+signal canvas_resize
 
 @export var use_smoothstep 		: bool 	= true
 @export var duration_default 	: float = 4
@@ -14,13 +14,19 @@ var _timer_bs			: Timer		= Timer.new()
 
 @onready var _node_fade_ts 	: ColorRect 	= get_parent().get_node("control_fade/fade_ts")
 @onready var _node_fade_bs 	: ColorRect 	= get_parent().get_node("control_fade/fade_bs")
-@onready var _node_bg_ts 	: TextureRect 	= get_parent().get_node("control_bg/bg_ts")
-@onready var _node_bg_bs	: TextureRect 	= get_parent().get_node("control_bg/bg_bs")
+@onready var _node_mask_ts 	: Control		= get_parent().get_node("split_bg/VBoxContainer/mask_ts")
+@onready var _node_mask_bs 	: Control		= get_parent().get_node("split_bg/VBoxContainer/mask_bs")
+@onready var _node_bg_ts 	: TextureRect 	= get_parent().get_node("split_bg/VBoxContainer/mask_ts/bg_ts")
+@onready var _node_bg_bs	: TextureRect 	= get_parent().get_node("split_bg/VBoxContainer/mask_bs/bg_bs")
+@onready var _sizer_master	: Control		= get_parent().get_node("split_bg")
 
 var void_bg : ImageTexture = ImageTexture.create_from_image(Image.create(1,1,false,Image.FORMAT_L8))
 
 var _fade_target_bs : float = 1.0
 var _fade_target_ts : float = 1.0
+
+var _size_ts : Vector2 = Vector2(0,0)
+var _size_bs : Vector2 = Vector2(0,0)
 
 func _on_timer_ts_done():
 	if not(_timer_ts_callback.is_null()):
@@ -50,6 +56,8 @@ func _ready():
 	_timer_bs.timeout.connect(_on_timer_bs_done)
 	_timer_ts.one_shot = true
 	_timer_bs.one_shot = true
+	_sizer_master.ratio_changed.connect(_refresh_stored_sizes)
+	_refresh_stored_sizes()
 	add_child(_timer_bs)
 	add_child(_timer_ts)
 
@@ -120,35 +128,66 @@ func shake_ts(duration : float):
 func flash_bs(duration : float):
 	pass
 
+func _refresh_stored_sizes():
+	if _node_mask_ts.size_flags_stretch_ratio == 0:
+		_size_bs = _sizer_master.size
+	else:
+		_size_bs = Vector2(_sizer_master.size.x, _node_mask_bs.custom_minimum_size.y)
+	
+	_size_ts = Vector2(_sizer_master.size.x, _sizer_master.size.y - _size_bs.y)
+	_node_fade_ts.position = get_anchor_loc_ts()
+	_node_fade_ts.size = _size_ts
+	_node_fade_bs.position = get_anchor_loc_bs()
+	_node_fade_bs.size = _size_bs
+	
+	
+	canvas_resize.emit()
+
+func get_size_bs() -> Vector2:
+	return _size_bs
+
+func get_size_ts() -> Vector2:
+	return _size_ts
+
+func get_anchor_loc_ts_full_corner() -> Vector2:
+	var ts_pos = get_anchor_loc_ts()
+	ts_pos += (_size_ts / 2)
+	ts_pos -= (Vector2(768, 632) / 2)
+	ts_pos.y += _node_bg_ts.position.y
+	return ts_pos
+
+func get_anchor_loc_bs_full_corner() -> Vector2:
+	var bs_pos = get_anchor_loc_bs()
+	bs_pos += (_size_bs / 2)
+	bs_pos -= (Vector2(768, 620) / 2)
+	return bs_pos
+
+func get_anchor_loc_bs() -> Vector2:
+	return get_anchor_loc_ts() + Vector2(0, _size_ts.y)
+
+func get_anchor_loc_ts() -> Vector2:
+	return (-_sizer_master.size / 2)
+
 func configure_fullscreen():
+	_node_mask_ts.size_flags_stretch_ratio = 0
 	_node_bg_ts.hide()
 	_node_fade_ts.hide()
-	
-	for node in [_node_bg_bs, _node_fade_bs]:
-		node.size = Lt2Constants.RESOLUTION_TARGET
-		node.global_position = -Lt2Constants.RESOLUTION_TARGET / 2
-	
 	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_sizer_master.set_room_mode_state(true)
 
 func configure_room_mode():
+	_node_mask_ts.size_flags_stretch_ratio = 1
 	_node_bg_ts.show()
 	_node_fade_ts.show()
-	
-	for node in [_node_bg_bs, _node_fade_bs]:
-		node.size.x = Lt2Constants.RESOLUTION_TARGET.x
-		@warning_ignore("integer_division")
-		node.size.y = Lt2Constants.RESOLUTION_TARGET.y / 2
-		@warning_ignore("integer_division")
-		node.global_position.x = -Lt2Constants.RESOLUTION_TARGET.x / 2
-		node.global_position.y = 0
-	
-	for node in [_node_bg_ts, _node_fade_ts]:
-		node.size.x = Lt2Constants.RESOLUTION_TARGET.x
-		@warning_ignore("integer_division")
-		node.size.y = Lt2Constants.RESOLUTION_TARGET.y / 2
-		node.global_position = -Lt2Constants.RESOLUTION_TARGET / 2
-	
-	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	_sizer_master.set_room_mode_state(true)
+
+func configure_event_mode():
+	_node_mask_ts.size_flags_stretch_ratio = 1
+	_node_bg_ts.show()
+	_node_fade_ts.show()
+	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	_sizer_master.set_room_mode_state(false)
 
 # TODO - Both fading functions aren't amazingly safe or well animated
 #        This is pretty rudimentary but does the job
