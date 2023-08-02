@@ -93,7 +93,11 @@ func _do_on_movemode_start():
 	print("MOVEMODE!")
 
 func _do_on_event_start(idx : int):
-	print(idx)
+	var trigger = _place_data.event_spawners[idx]
+	print("EVENT ", trigger.id_event)
+	_disable_all_triggers()
+	_set_event(trigger.id_event)
+	completed.emit()
 
 func _do_on_tobj_start(idx : int):
 	print(idx)
@@ -106,13 +110,12 @@ func _do_on_exit_start(idx : int):
 	var exit = _place_data.exits[idx]
 	
 	if exit.does_spawn_event():
-		print("EVENT", exit.destination)
+		print("EXIT EVENT ", exit.destination)
 		# TODO - Do explamation effect
 		_set_event(exit.destination)
 		completed.emit()
 	
 	else:
-		print("HELLO")
 		obj_state._id_room = exit.destination
 		
 		# TODO - Handoff (transition, same state reload, etc)
@@ -138,9 +141,8 @@ func _ready():
 func _load_room_data():
 	_update_subroom()
 	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
-	#_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [obj_state.get_id_room(), obj_state.get_id_subroom()])
-	_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [3,1])
-	
+	_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [obj_state.get_id_room(), obj_state.get_id_subroom()])
+
 	var raw_text = FileAccess.open(Lt2Utils.get_asset_path("nazo/jiten/p_%d.txt" % _place_data.id_nametag), FileAccess.READ)
 	if raw_text != null:
 		_text_place.text = raw_text.get_as_text()
@@ -187,23 +189,6 @@ func _load_room_data():
 		idx_spawner += 1
 	
 	idx_spawner = 0
-	for exit in _place_data.exits:
-		var node = Lt2GodotAnimatedButton.new("map/exit_%d.spr" % exit.id_image, "gfx2", "gfx", "", false, null)
-		node.position = exit.bounding.position
-		
-		if exit.allow_immediate_activation():
-			node.set_transparency(0.0)
-		else:
-			node.hide()
-		
-		node.set_custom_boundary(exit.bounding.size)
-		node.activated.connect(_do_on_exit_start.bind(idx_spawner))
-		_node_anim_root.add_child(node)
-		_node_exit.append(node)
-		
-		idx_spawner += 1
-
-	idx_spawner = 0
 	for tobj in _place_data.t_objs:
 		var zone = ActivatableRect.new()
 		zone.position = tobj.bounding.position
@@ -221,6 +206,23 @@ func _load_room_data():
 		_node_anim_root.add_child(zone)
 		idx_spawner += 1
 	
+	idx_spawner = 0
+	for exit in _place_data.exits:
+		var node = Lt2GodotAnimatedButton.new("map/exit_%d.spr" % exit.id_image, "gfx2", "gfx", "", false, null)
+		node.position = exit.bounding.position
+		
+		if exit.allow_immediate_activation():
+			node.set_transparency(0.0)
+		else:
+			node.hide()
+		
+		node.set_custom_boundary(exit.bounding.size)
+		node.activated.connect(_do_on_exit_start.bind(idx_spawner))
+		_node_anim_root.add_child(node)
+		_node_exit.append(node)
+		
+		idx_spawner += 1
+	
 func _parse_loaded_data():
 	pass
 	
@@ -228,6 +230,7 @@ func _update_chapter():
 	var idx_chapter = obj_state.db_storyflag.get_group_index_from_chapter(obj_state.chapter)
 	if idx_chapter == -1:
 		idx_chapter = 0
+	print("Storyflag update - chapter index ", idx_chapter, " (", obj_state.chapter, ")")
 	
 	var storyflag_entry : Lt2DatabaseStoryFlag.StoryFlagEntry = null
 	var condition_entry : Lt2DatabaseStoryFlag.StoryFlagConditional = null
@@ -237,13 +240,16 @@ func _update_chapter():
 	while idx_chapter < Lt2DatabaseStoryFlag.MAX_COUNT_CHAPTERS:
 		
 		storyflag_entry = obj_state.db_storyflag.get_group_at_index(idx_chapter)
+		print("\tTesting ", idx_chapter)
 		if storyflag_entry == null:
+			print("\tNull response.")
 			return
 		
 		for idx_condition in range(Lt2DatabaseStoryFlag.MAX_COUNT_CONDITIONS):
 			condition_entry = storyflag_entry.conditions[idx_condition]
 			match condition_entry.type:
 				1:
+					print("\t\tStoryflag check, bit ", condition_entry.data)
 					if not(obj_state.flags_storyflag.get_bit(condition_entry.data)):
 						obj_state.chapter = storyflag_entry.chapter
 						return
@@ -252,12 +258,14 @@ func _update_chapter():
 					if nz_lst_entry != null:
 						puzzle_data = obj_state.get_puzzle_state(nz_lst_entry.id_external)
 						if puzzle_data != null and not(puzzle_data.solved):
-							obj_state.chaper = storyflag_entry.chapter
+							obj_state.chapter = storyflag_entry.chapter
 							return
 				_:
 					pass
 		
 		idx_chapter += 1
+	
+	print("Chapter updated, now ", obj_state.chapter)
 
 func _check_event_counter(entry : Lt2DatabasePlaceFlag.PlaceFlagSubRoomEntry) -> bool:
 	if entry.idx_event_counter >= obj_state.flags_event_counter.get_byte_length():
@@ -297,6 +305,8 @@ func _update_subroom():
 			
 		idx_subroom = working_subroom
 	obj_state.set_id_subroom(idx_subroom)
+	
+	print("Subroom updated, now ", idx_subroom)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

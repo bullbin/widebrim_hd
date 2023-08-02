@@ -28,6 +28,7 @@ func _init(path : String):
 				condition.type = file.get_8()
 				file.get_8()
 				condition.data = file.get_16()
+				entry.conditions.append(condition)
 			_flags.append(entry)
 
 func get_group_index_from_chapter(chapter : int) -> int:

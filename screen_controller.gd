@@ -140,7 +140,6 @@ func _refresh_stored_sizes():
 	_node_fade_bs.position = get_anchor_loc_bs()
 	_node_fade_bs.size = _size_bs
 	
-	
 	canvas_resize.emit()
 
 func get_size_bs() -> Vector2:
@@ -170,24 +169,27 @@ func get_anchor_loc_ts() -> Vector2:
 
 func configure_fullscreen():
 	_node_mask_ts.size_flags_stretch_ratio = 0
-	_node_bg_ts.hide()
+	_node_mask_ts.hide()
 	_node_fade_ts.hide()
 	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_sizer_master.set_room_mode_state(true)
+	_refresh_stored_sizes()
 
 func configure_room_mode():
 	_node_mask_ts.size_flags_stretch_ratio = 1
-	_node_bg_ts.show()
+	_node_mask_ts.show()
 	_node_fade_ts.show()
 	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	_sizer_master.set_room_mode_state(true)
+	_refresh_stored_sizes()
 
 func configure_event_mode():
 	_node_mask_ts.size_flags_stretch_ratio = 1
-	_node_bg_ts.show()
+	_node_mask_ts.show()
 	_node_fade_ts.show()
 	_node_bg_bs.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	_sizer_master.set_room_mode_state(false)
+	_refresh_stored_sizes()
 
 # TODO - Both fading functions aren't amazingly safe or well animated
 #        This is pretty rudimentary but does the job

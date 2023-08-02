@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://chjyrf0f17hhk"]
+[gd_scene load_steps=8 format=3 uid="uid://chjyrf0f17hhk"]
 
 [ext_resource type="Script" path="res://gamemode_event.gd" id="1_h4qt3"]
+[ext_resource type="Script" path="res://root_character.gd" id="2_5crdf"]
 [ext_resource type="Script" path="res://script_executor.gd" id="2_6xwv4"]
 [ext_resource type="Script" path="res://twindow.gd" id="2_bmsn8"]
 [ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="3_185be"]
@@ -24,6 +25,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = -384.0
 offset_right = -384.0
+script = ExtResource("2_5crdf")
 
 [node name="twindow" type="Node2D" parent="."]
 script = ExtResource("2_bmsn8")

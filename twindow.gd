@@ -15,6 +15,7 @@ var _char_names : Array[Lt2GodotAnimation]		= []
 var _data		: Lt2AssetEventData 			= null
 
 @onready var _state : Lt2State = get_parent().obj_state
+@onready var _screen_controller : Lt2ScreenController = get_parent().node_screen_controller
 
 var _text_complete 	: String 	= ""
 var _idx_char 		: int 		= 0
@@ -29,6 +30,7 @@ var _anim_end		: String	= "NONE"
 var _pitch			: int		= -1
 var _target_voice	: int		= -1
 var _idx_voice		: int 		= -1
+var _in_mode_dial	: bool		= true
 
 const POS_TO_ANIM = {0:"LEFT",
 					2:"RIGHT",
@@ -42,8 +44,23 @@ func _ready():
 	_node_reward.set_transparency(0.0)
 	_node_window.set_transparency(0.0)
 	_node_text.hide()
+	
+	_screen_controller.canvas_resize.connect(_update_position)
+	_update_position()
+	
 	get_node("CanvasGroup").self_modulate.a = 0.0
 	get_node("CanvasGroup").add_child(_node_fade)
+
+func _update_position():
+	var size_ref_node = null
+	if _in_mode_dial:
+		size_ref_node = _node_window
+	else:
+		size_ref_node = _node_reward
+		
+	position = _screen_controller.get_anchor_loc_bs()
+	position.y += _screen_controller.get_size_bs().y - size_ref_node.size.y
+	position.x += (_screen_controller.get_size_bs().x - size_ref_node.size.x) / 2
 
 func _position_text_dialogue():
 	_node_text.position = Vector2(42,45)
@@ -79,23 +96,19 @@ func _reset_state():
 
 func switch_to_reward():
 	_node_reward.set_animation_from_index(1)
-	@warning_ignore("integer_division")
-	global_position.x = _node_reward.get_variable_as_vector_from_index(0).x - Lt2Constants.RESOLUTION_TARGET.x/2
-	@warning_ignore("integer_division")
-	global_position.y = (Lt2Constants.RESOLUTION_TARGET.y/ 2) - _node_reward.get_maximal_dimensions().y
 	_node_reward.set_transparency(1.0)
 	_node_window.set_transparency(0.0)
 	_node_fade.fade_visibility(1.0, 0.5, Callable(self, "_position_text_reward"))
+	_in_mode_dial = false
+	_update_position()
 	_reset_state()
 
 func switch_to_dialogue():
-	@warning_ignore("integer_division")
-	global_position.x = _node_window.get_variable_as_vector_from_index(0).x - Lt2Constants.RESOLUTION_TARGET.x/2
-	@warning_ignore("integer_division")
-	global_position.y = (Lt2Constants.RESOLUTION_TARGET.y/ 2) - _node_window.get_maximal_dimensions().y
 	_node_window.set_transparency(1.0)
 	_node_reward.set_transparency(0.0)
 	_node_fade.fade_visibility(1.0, 0.5, Callable(self, "_position_text_dialogue"))
+	_in_mode_dial = true
+	_update_position()
 	
 	if _target_char != null and not(Lt2Utils.lt2_string_compare(_anim_start, "NONE")):
 		_target_char.set_animation_from_name(_anim_start)
@@ -123,6 +136,7 @@ func hide_all_nametags():
 		tag.set_transparency(0.0)
 
 func load_talkscript(id : int):
+	_node_window.set_animation_from_index(1)
 	@warning_ignore("integer_division")
 	var event_group = _state.id_event / 1000
 	var event_subgroup = _state.id_event % 1000
@@ -130,7 +144,6 @@ func load_talkscript(id : int):
 	_target_voice = _state.id_voice
 	_state.id_voice = -1
 	hide_all_nametags()
-	_node_window.set_animation_from_index(1)
 	
 	var raw_text = FileAccess.open(Lt2Utils.get_asset_path(PATH_TALKSCRIPT % [event_group, event_subgroup, id]), FileAccess.READ)
 	if raw_text != null:
@@ -279,7 +292,7 @@ func skip():
 	_enter_end_state_if_done()
 
 func _unhandled_input(event):
-	if _node_text.is_visible():
+	if is_visible() and _node_text.is_visible():
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			if _awaiting_input:
 				_awaiting_input = false

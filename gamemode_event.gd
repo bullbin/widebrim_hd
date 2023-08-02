@@ -1,8 +1,10 @@
 extends Lt2GamemodeBaseClass
 
+@onready var node_script_executor = get_node("script_executor")
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	get_node("script_executor").script_finished.connect(_terminate)
+	node_script_executor.script_finished.connect(_terminate)
 
 func _do_on_complete():
 	# TODO - Set goal information, do Mokuteki window
@@ -31,3 +33,7 @@ func _do_on_complete():
 func _terminate():
 	node_screen_controller.fade_out(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE,
 									Callable(self, "_do_on_complete"))
+
+func _unhandled_input(event):
+	if node_script_executor.on_touch():
+		get_viewport().set_input_as_handled()

@@ -21,6 +21,9 @@ func _ready():
 		state.read_save(Lt2Constants.DEBUG_SAVE_PATH)
 		print("Save imported.")
 	
+	#state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
+	#state.id_event = 10030
+	
 	state.set_gamemode(Lt2Constants.GAMEMODES.ROOM)
 	_main()
 	
@@ -39,6 +42,10 @@ func _main():
 			node_gm = load("res://gamemode_narration.tscn").instantiate()
 		Lt2Constants.GAMEMODES.MOVIE:
 			node_gm = load("res://gamemode_movie.tscn").instantiate()
+		Lt2Constants.GAMEMODES.END_PUZZLE:
+			node_gm = load("res://gamemode_endpuzzle.tscn").instantiate()
+		Lt2Constants.GAMEMODES.PUZZLE:
+			node_gm = load("res://gamemode_puzzle.tscn").instantiate()
 		_:
 			node_gm = null
 	

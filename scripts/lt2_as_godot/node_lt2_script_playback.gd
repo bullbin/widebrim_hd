@@ -23,9 +23,11 @@ func resume_execution():
 	_delay_by_time_active 	= false
 	_delay_awaiting_touch 	= false
 
-func on_touch():
+func on_touch() -> bool:
 	if _is_execution_paused and _delay_awaiting_touch:
 		resume_execution()
+		return true
+	return false
 
 func _do_on_finished():
 	script_finished.emit()
@@ -72,6 +74,9 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_AUTO_EVENT_NUM:
 			pass	# Intentionally stubbed, no-op
+		
+		Lt2Constants.SCRIPT_OPERANDS.SET_PUZZLE_NUM:
+			_state.set_puzzle_id(operands[0])
 		
 		Lt2Constants.SCRIPT_OPERANDS.LOAD_BG:
 			_screen_controller.set_background_bs(operands[0])

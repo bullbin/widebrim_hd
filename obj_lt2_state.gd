@@ -4,7 +4,7 @@ extends Lt2AssetSaveSlot
 
 const PATH_PLACEFLAG : String = "place/placeflag.dat"
 const PATH_AUTOEVENT : String = "place/autoevent2.dat"
-const PATH_STORYFLAG : String = "place/storyflag.dat"
+const PATH_STORYFLAG : String = "place/storyflag2.dat"
 const PATH_DLZ_EVINF : String = "rc/ev_inf2.dat"
 const PATH_DLZ_TMDEF : String = "rc/tm_def.dat"
 const PATH_DLZ_NZLST : String = "rc/nz_lst.dat"
@@ -26,6 +26,7 @@ var dlz_nz_lst   = DlzNazoList.new(PATH_DLZ_NZLST)
 var dlz_ev_fix	 = DlzEventBase.new(PATH_DLZ_EVFIX)
 
 var first_touch_enabled : bool = false
+var active_entry_nz_lst : DlzNazoList.DlzEntryNzLst = null
 
 func _init():
 	super()
@@ -71,3 +72,6 @@ func set_event_viewed(id_event : int, is_viewed : bool):
 	var entry_event = dlz_ev_fix.find_entry(id_event)
 	if entry_event != null:
 		flags_event_viewed.set_bit(entry_event.idx_event_viewed, is_viewed)
+
+func set_puzzle_id(id_internal : int):
+	active_entry_nz_lst = dlz_nz_lst.find_entry(id_internal)

@@ -8,6 +8,9 @@ const PATH_ANIM_CHAR	: String = "eventchr/chr%d.arc"
 var _data 		: Lt2AssetEventData 			= null
 var _characters : Array[Lt2GodotCharController] = []
 
+const EVENT_LIMIT_TEA = 30000
+const EVENT_LIMIT_PUZZLE = 20000
+
 @onready var _node_twindow = get_parent().get_node("twindow")
 
 func _char_in_slot(idx_char) -> bool:
@@ -17,7 +20,7 @@ func _init():
 	super(null, null, null)
 
 func _ready():
-	var state = get_parent().obj_state
+	var state : Lt2State = get_parent().obj_state
 	var screen_controller : Lt2ScreenController = get_parent().node_screen_controller
 	var id_event_main = state.id_event / 1000
 	var id_event_sub = state.id_event % 1000
@@ -33,10 +36,21 @@ func _ready():
 	
 	load_init(state, get_parent().node_screen_controller, script)
 	
-	# TODO - Unknown when this is done, also should not be done here (room only...) with storyflag
 	var ev_inf_entry = state.dlz_ev_inf2.find_entry(state.id_event)
-	if ev_inf_entry != null and ev_inf_entry.idx_event_viewed != -1:
-		state.flags_event_viewed.set_bit(ev_inf_entry.idx_event_viewed, true)
+	if ev_inf_entry != null:
+		# TODO - Unknown when this is done, also should not be done here (room only...) with storyflag
+		if ev_inf_entry.idx_event_viewed != -1:
+			state.flags_event_viewed.set_bit(ev_inf_entry.idx_event_viewed, true)
+		
+		# LoadEvent
+		if state.id_event >= EVENT_LIMIT_PUZZLE and state.id_event < EVENT_LIMIT_TEA and ev_inf_entry.data_puzzle != -1:
+			state.set_puzzle_id(ev_inf_entry.data_puzzle)
+			state.set_gamemode(Lt2Constants.GAMEMODES.PUZZLE)
+			state.set_gamemode_next(Lt2Constants.GAMEMODES.END_PUZZLE)
+		
+		if ev_inf_entry.idx_story_flag != -1:
+			print("Story flag set.")
+			state.flags_storyflag.set_bit(ev_inf_entry.idx_story_flag, true)
 	
 	for idx_char in range(8):
 		_characters.append(Lt2GodotCharController.new(_data.characters[idx_char]))
