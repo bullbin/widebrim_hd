@@ -53,18 +53,19 @@ class PackedRoomManager:
 			return base_val > 0
 		return false
 	
-	func set_hint_state(idx_place : int, idx_hint : int, state : bool):
+	func set_hint_state(idx_place : int, idx_hint : int, state : bool) -> bool:
 		if _is_data_in_range(idx_place, idx_hint):
 			@warning_ignore("integer_division")
 			var base_val = _room_data[idx_place / 2]
 			if idx_place % 2 == 1:
 				idx_hint += 4
 			var mask = 1 << idx_hint
-			base_val = base_val & (0xff - mask)
 			if state:
-				base_val += mask
+				base_val = base_val | mask
 			@warning_ignore("integer_division")
-			_room_data.set(_room_data[idx_place / 2], base_val)
+			_room_data.set(idx_place / 2, base_val)
+			return true
+		return false
 	
 	func write_contents(file : FileAccess):
 		file.store_buffer(_room_data)

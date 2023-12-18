@@ -5,10 +5,12 @@ var _place_data : Lt2AssetPlaceData = null
 
 const PATH_DATA_PLACE : String = "place/data/n_place%d_%d.dat"
 @onready var _node_anim_root : Control = get_node("anim_root")
+@onready var _node_hintcoin : Control = get_node("hintcoin")
 
 var _node_bg_ani 		: Array[Lt2GodotAnimation] = []
 var _node_event_spawner : Array[Lt2GodotAnimation] = []
 var _node_exit			: Array[Lt2GodotAnimatedButton] = []
+var _node_hint			: Dictionary = {}
 
 @onready var _text_place 		: Label = get_node("hud_ts/map_place/text_place")
 @onready var _text_objective 	: Label = get_node("hud_ts/map_purpose/text_purpose")
@@ -16,10 +18,12 @@ var _node_exit			: Array[Lt2GodotAnimatedButton] = []
 
 @onready var _btn_movemode		: Lt2GodotAnimatedButtonDeferred = get_node("hud_bs/movemode")
 
-const EVENT_LIMIT_TEA : int = 30000
-const EVENT_LIMIT_PUZZLE : int = 20000
-const EVENT_LIMIT_MIN : int = 10000
-const ID_EVENT_UNK	: int = 0x5303
+const EVENT_LIMIT_TEA 		: int = 30000
+const EVENT_LIMIT_PUZZLE 	: int = 20000
+const EVENT_LIMIT_MIN 		: int = 10000
+const ID_EVENT_UNK			: int = 0x5303
+
+var _idx_last_hint_triggered = 0
 
 func _has_autoevent() -> bool:
 	var collection = obj_state.db_autoevent.get_room_entries(obj_state.get_id_room())
@@ -95,18 +99,15 @@ func _do_on_movemode_start():
 func _do_on_event_start(idx : int):
 	var trigger = _place_data.event_spawners[idx]
 	print("EVENT ", trigger.id_event)
-	_disable_all_triggers()
+	node_screen_controller.input_disable()
 	_set_event(trigger.id_event)
 	completed.emit()
 
 func _do_on_tobj_start(idx : int):
 	print(idx)
-	
-func _disable_all_triggers():
-	pass
 
 func _do_on_exit_start(idx : int):
-	_disable_all_triggers()
+	node_screen_controller.input_disable()
 	var exit = _place_data.exits[idx]
 	
 	if exit.does_spawn_event():
@@ -123,12 +124,39 @@ func _do_on_exit_start(idx : int):
 		completed.emit()
 
 func _do_on_hint_start(idx : int):
-	print(idx)
+	# TODO - Hide spawner! Only relevant on rerun
+	node_screen_controller.input_disable()
+
+	obj_state.hint_coin_encountered += 1
+	obj_state.hint_coin_remaining += 1
+	obj_state.room_hint_state.set_hint_state(obj_state.get_id_room(), idx, true)
+	
+	_node_hint[idx].disable()
+	
+	_idx_last_hint_triggered = idx
+	_node_hintcoin.do_hint_coin_position(_place_data.hint_coins[idx].bounding.position + _place_data.hint_coins[idx].bounding.size / 2)
+	
+	_do_on_hint_end()
+
+func _do_on_hint_end():
+	var id_room = obj_state.get_id_room()
+	if id_room == 0x5c:
+		id_room - 0x26
+	
+	obj_state.room_hint_state.set_hint_state(id_room, _idx_last_hint_triggered, true)
+	
+	if _idx_last_hint_triggered == 0 and id_room == 3:
+		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
+		obj_state.id_event = 10080
+		completed.emit()
+	else:
+		node_screen_controller.input_enable()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	node_screen_controller.configure_room_mode()
 	_btn_movemode.activated.connect(_do_on_movemode_start)
+	_node_hintcoin.on_hint_coin_anim_finished.connect(_do_on_hint_end)
 	
 	if _has_autoevent():
 		# Will not have faded in, stop early.
@@ -157,7 +185,7 @@ func _load_room_data():
 	
 	node_screen_controller.set_background_bs("map/main%d.bgx" % _place_data.id_bg_main)
 	node_screen_controller.set_background_ts("map/map%d.bgx" % _place_data.id_bg_sub)
-	node_screen_controller.fade_in()
+	node_screen_controller.fade_in(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(node_screen_controller, "input_enable"))
 	
 	_hud_ts.set_mapicon_position(_place_data.position_map)
 	
@@ -169,6 +197,36 @@ func _load_room_data():
 		_node_bg_ani.append(anim)
 	
 	var idx_spawner = 0
+	for tobj in _place_data.t_objs:
+		var zone = ActivatableRect.new()
+		zone.position = tobj.bounding.position
+		zone.size = tobj.bounding.size
+		zone.activated.connect(_do_on_tobj_start.bind(idx_spawner))
+		_node_anim_root.add_child(zone)
+		idx_spawner += 1
+	
+	idx_spawner = 0
+	for hint in _place_data.hint_coins:
+		var zone = ActivatableRect.new()
+		zone.add_visualizer(Color(1.0,0,1.0))
+		zone.position = hint.bounding.position
+		zone.size = hint.bounding.size
+		zone.activated.connect(_do_on_hint_start.bind(idx_spawner))
+		_node_anim_root.add_child(zone)
+		_node_hint[idx_spawner] = zone
+		
+		var is_hint_disabled : bool = false;
+		if obj_state.get_id_room() == 0x5c:
+			is_hint_disabled = obj_state.room_hint_state.get_hint_state(0x26, idx_spawner)
+		else:
+			is_hint_disabled = obj_state.room_hint_state.get_hint_state(obj_state.get_id_room(), idx_spawner)
+		
+		if is_hint_disabled:
+			zone.disable()
+	
+		idx_spawner += 1
+	
+	idx_spawner = 0
 	for event_spawner in _place_data.event_spawners:
 		if event_spawner.id_image != 0:
 			var anim = Lt2GodotAnimation.new("eventobj/obj_%d.spr" % event_spawner.id_image)
@@ -186,24 +244,6 @@ func _load_room_data():
 		debug_zone.activated.connect(_do_on_event_start.bind(idx_spawner))
 		debug_zone.size = event_spawner.bounding.size
 		debug_zone.position = event_spawner.bounding.position
-		idx_spawner += 1
-	
-	idx_spawner = 0
-	for tobj in _place_data.t_objs:
-		var zone = ActivatableRect.new()
-		zone.position = tobj.bounding.position
-		zone.size = tobj.bounding.size
-		zone.activated.connect(_do_on_tobj_start.bind(idx_spawner))
-		_node_anim_root.add_child(zone)
-		idx_spawner += 1
-	
-	idx_spawner = 0
-	for hint in _place_data.hint_coins:
-		var zone = ActivatableRect.new()
-		zone.position = hint.bounding.position
-		zone.size = hint.bounding.size
-		zone.activated.connect(_do_on_hint_start.bind(idx_spawner))
-		_node_anim_root.add_child(zone)
 		idx_spawner += 1
 	
 	idx_spawner = 0
@@ -256,7 +296,7 @@ func _update_chapter():
 				2:
 					nz_lst_entry = obj_state.dlz_nz_lst.find_entry(condition_entry.data)
 					if nz_lst_entry != null:
-						puzzle_data = obj_state.get_puzzle_state(nz_lst_entry.id_external)
+						puzzle_data = obj_state.get_puzzle_state_external(nz_lst_entry.id_external)
 						if puzzle_data != null and not(puzzle_data.solved):
 							obj_state.chapter = storyflag_entry.chapter
 							return

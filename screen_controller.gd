@@ -82,6 +82,12 @@ func _process(_delta):
 		else:
 			_set_opacity_bs(lerp(_fade_target_bs, abs(_fade_target_bs - 1), progress))
 
+func input_disable():
+	get_viewport().set_disable_input(true)
+
+func input_enable():
+	get_viewport().set_disable_input(false)
+
 func set_background_bs(path_bg_relative : String) -> bool:
 	var path_bg = path_bg_relative.substr(0, len(path_bg_relative) - 3) + "png"
 	path_bg = Lt2Utils.get_asset_path("bg/%s" % path_bg)

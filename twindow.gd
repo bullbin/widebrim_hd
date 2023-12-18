@@ -220,7 +220,7 @@ func apply_token_command(token : String) -> bool:
 						_target_char.set_talk_state(false)
 				"c":
 					_node_text.text = ""
-					_idx_char += 2	# TODO - not sure why this is two...
+					_idx_char += 1	# TODO - not sure why this is two...
 				"w":
 					_time_visible -= 0.5
 					if _target_char != null:
@@ -256,6 +256,7 @@ func _process(delta):
 				
 				while _time_visible > Lt2Constants.TIMING_LT2_TO_MILLISECONDS and not(_awaiting_input):
 					var token = get_next_token()
+					# print(token)
 					if not(apply_token_command(token)):
 						if _target_char != null:
 							_target_char.set_talk_state(true)
