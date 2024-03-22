@@ -12,8 +12,8 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntryTmDef:
 	output.count_frames = buffer.decode_u16(2)
 	return output
 
-func find_entry(id : int) -> DlzEntryTmDef:
+func find_entry(id : int):
 	return super(id)
 
-func get_entry(idx : int) -> DlzEntryTmDef:
+func get_entry(idx : int):
 	return super(idx)

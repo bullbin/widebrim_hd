@@ -43,12 +43,14 @@ const POS_TO_ANIM = {0:"LEFT",
 func _ready():
 	_node_reward.set_transparency(0.0)
 	_node_window.set_transparency(0.0)
+	_node_reward.set_animation_from_index(1)
+	_node_window.set_animation_from_index(1)
 	_node_text.hide()
 	
 	_screen_controller.canvas_resize.connect(_update_position)
 	_update_position()
 	
-	get_node("CanvasGroup").self_modulate.a = 0.0
+	get_node("CanvasGroup").modulate.a = 0.0
 	get_node("CanvasGroup").add_child(_node_fade)
 
 func _update_position():
@@ -137,6 +139,7 @@ func hide_all_nametags():
 
 func load_talkscript(id : int):
 	_node_window.set_animation_from_index(1)
+	_node_window.set_transparency(1.0)
 	@warning_ignore("integer_division")
 	var event_group = _state.id_event / 1000
 	var event_subgroup = _state.id_event % 1000
@@ -220,7 +223,7 @@ func apply_token_command(token : String) -> bool:
 						_target_char.set_talk_state(false)
 				"c":
 					_node_text.text = ""
-					_idx_char += 1	# TODO - not sure why this is two...
+					_idx_char += 2	# TODO - not sure why this is two...
 				"w":
 					_time_visible -= 0.5
 					if _target_char != null:

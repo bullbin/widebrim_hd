@@ -4,6 +4,7 @@ extends Lt2GamemodeBaseClass
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	node_screen_controller.input_enable()
 	node_script_executor.script_finished.connect(_terminate)
 
 func _do_on_complete():

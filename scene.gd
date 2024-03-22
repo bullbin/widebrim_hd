@@ -21,9 +21,6 @@ func _ready():
 		state.read_save(Lt2Constants.DEBUG_SAVE_PATH)
 		print("Save imported.")
 	
-	#state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
-	#state.id_event = 10030
-	
 	state.set_gamemode(Lt2Constants.GAMEMODES.ROOM)
 	_main()
 	

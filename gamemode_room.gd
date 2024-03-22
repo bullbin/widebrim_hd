@@ -162,6 +162,7 @@ func _ready():
 		# Will not have faded in, stop early.
 		print("AutoEvent %d" % obj_state.id_event)
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
+		
 		completed.emit()
 	else:
 		_load_room_data()

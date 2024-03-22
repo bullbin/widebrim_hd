@@ -152,6 +152,7 @@ name_anim_click = "click"
 one_shot = true
 
 [node name="tobj_control" type="Control" parent="hud_bs"]
+visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0

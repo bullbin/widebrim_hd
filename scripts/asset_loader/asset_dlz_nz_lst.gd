@@ -16,8 +16,8 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntryNzLst:
 	output.group = buffer.decode_s16(84)
 	return output
 
-func find_entry(id : int) -> DlzEntryNzLst:
+func find_entry(id : int):
 	return super(id)
 
-func get_entry(idx : int) -> DlzEntryNzLst:
+func get_entry(idx : int):
 	return super(idx)
