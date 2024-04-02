@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://chjyrf0f17hhk"]
+
+[ext_resource type="Script" path="res://gamemode_event.gd" id="1_h4qt3"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_txg1k"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_tnsiq"]
+noise = SubResource("FastNoiseLite_txg1k")
+
+[node name="gamemode_event" type="Node2D"]
+script = ExtResource("1_h4qt3")
+
+[node name="debug" type="Sprite2D" parent="."]
+texture = SubResource("NoiseTexture2D_tnsiq")
