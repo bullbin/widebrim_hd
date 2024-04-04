@@ -1,19 +1,19 @@
 [gd_scene load_steps=14 format=3 uid="uid://cwiickfe2ytul"]
 
-[ext_resource type="Script" path="res://gamemode_room.gd" id="1_3rwna"]
-[ext_resource type="Script" path="res://scripts/lt2_as_godot/node_lt2_anim_deferred.gd" id="2_agq0w"]
-[ext_resource type="Script" path="res://hintcoin.gd" id="2_y7iqn"]
-[ext_resource type="Script" path="res://scripts/lt2_as_godot/node_lt2_anim_button_deferred.gd" id="3_elekb"]
-[ext_resource type="Script" path="res://anim_root.gd" id="3_esd4w"]
-[ext_resource type="Script" path="res://tobj.gd" id="4_pblye"]
-[ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="5_47bwv"]
-[ext_resource type="Script" path="res://hud_ts.gd" id="6_5rt1k"]
-[ext_resource type="Script" path="res://hud_bs.gd" id="7_pgvww"]
-[ext_resource type="Script" path="res://tobj_control.gd" id="10_punhe"]
-[ext_resource type="Script" path="res://helper_alpha_fade_target.gd" id="11_q6b70"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/scene.gd" id="1_strqb"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hintcoin.gd" id="2_awlbe"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/anim_root.gd" id="3_1wnd1"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/tobj.gd" id="4_jl62s"]
+[ext_resource type="Script" path="res://godot/scripts/madhatter_to_native/node_lt2_anim_deferred.gd" id="5_dhytq"]
+[ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="6_fkyq0"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hud_ts.gd" id="7_604xf"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hud_bs.gd" id="8_luccn"]
+[ext_resource type="Script" path="res://godot/scripts/madhatter_to_native/node_lt2_anim_button_deferred.gd" id="9_cevq6"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/tobj_control.gd" id="10_iw2ul"]
+[ext_resource type="Script" path="res://godot/scripts/helper/helper_alpha_fade_target.gd" id="11_by4mt"]
 
 [sub_resource type="FontVariation" id="FontVariation_vgmtm"]
-base_font = ExtResource("5_47bwv")
+base_font = ExtResource("6_fkyq0")
 variation_embolden = 0.25
 
 [sub_resource type="LabelSettings" id="LabelSettings_pbh6t"]
@@ -24,14 +24,14 @@ font_color = Color(0, 0, 0, 1)
 outline_color = Color(0.388235, 0.388235, 0.388235, 1)
 
 [node name="gamemode_room" type="Node2D"]
-script = ExtResource("1_3rwna")
+script = ExtResource("1_strqb")
 
 [node name="hintcoin" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("2_y7iqn")
+script = ExtResource("2_awlbe")
 path_animation = "map/hintcoin.spr"
 
 [node name="anim_root" type="Control" parent="."]
@@ -39,7 +39,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("3_esd4w")
+script = ExtResource("3_1wnd1")
 
 [node name="tobj_old" type="Control" parent="."]
 visible = false
@@ -48,24 +48,24 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("4_pblye")
+script = ExtResource("4_jl62s")
 
 [node name="tobj_window" type="Control" parent="tobj_old"]
 y_sort_enabled = true
 anchors_preset = 0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "tobj/window.spr"
 
 [node name="icon" type="Control" parent="tobj_old/tobj_window"]
 y_sort_enabled = true
 anchors_preset = 0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "tobj/icon.spr"
 
 [node name="cursor_wait" type="Control" parent="tobj_old/tobj_window"]
 y_sort_enabled = true
 anchors_preset = 0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "cursor_wait.spr"
 
 [node name="text" type="Label" parent="tobj_old/tobj_window"]
@@ -83,20 +83,20 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("6_5rt1k")
+script = ExtResource("7_604xf")
 
 [node name="mapicon" type="Control" parent="hud_ts"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "map/mapicon.sbj"
 
 [node name="map_place" type="Control" parent="hud_ts"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "map/map_place.spr"
 
 [node name="text_place" type="Label" parent="hud_ts/map_place"]
@@ -113,7 +113,7 @@ vertical_alignment = 1
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "map/map_purpose.spr"
 
 [node name="text_purpose" type="Label" parent="hud_ts/map_purpose"]
@@ -130,7 +130,7 @@ vertical_alignment = 1
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("2_agq0w")
+script = ExtResource("5_dhytq")
 path_animation = "map/toketa_nazo.sbj"
 
 [node name="hud_bs" type="Control" parent="."]
@@ -138,7 +138,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("7_pgvww")
+script = ExtResource("8_luccn")
 
 [node name="movemode" type="Control" parent="hud_bs"]
 anchors_preset = 0
@@ -146,7 +146,7 @@ offset_left = 64.0
 offset_top = 64.0
 offset_right = 104.0
 offset_bottom = 104.0
-script = ExtResource("3_elekb")
+script = ExtResource("9_cevq6")
 path_animation = "map/movemode.spr"
 name_anim_click = "click"
 one_shot = true
@@ -156,12 +156,12 @@ visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
-script = ExtResource("10_punhe")
+script = ExtResource("10_iw2ul")
 
 [node name="CanvasGroup" type="CanvasGroup" parent="hud_bs/tobj_control"]
 
 [node name="CanvasFadeController" type="Node2D" parent="hud_bs/tobj_control/CanvasGroup"]
-script = ExtResource("11_q6b70")
+script = ExtResource("11_by4mt")
 
 [node name="text" type="Label" parent="hud_bs/tobj_control/CanvasGroup"]
 z_index = 1

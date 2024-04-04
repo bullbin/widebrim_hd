@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://3lu7uxj13xes"]
 
-[ext_resource type="Script" path="res://scene.gd" id="1_q4vfu"]
-[ext_resource type="Script" path="res://split_bg.gd" id="2_s114v"]
-[ext_resource type="Script" path="res://screen_controller.gd" id="3_cwo7r"]
-[ext_resource type="Script" path="res://cam_ds_autozoom.gd" id="3_gjrui"]
+[ext_resource type="Script" path="res://godot/main/scene.gd" id="1_q4vfu"]
+[ext_resource type="Script" path="res://godot/main/split_bg.gd" id="2_s114v"]
+[ext_resource type="Script" path="res://godot/scripts/screen_controller.gd" id="3_cwo7r"]
+[ext_resource type="Script" path="res://godot/main/cam_ds_autozoom.gd" id="3_gjrui"]
 
 [node name="scene" type="Node2D"]
 script = ExtResource("1_q4vfu")

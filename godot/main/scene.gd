@@ -32,17 +32,17 @@ func _main():
 	
 	match state.get_gamemode():
 		Lt2Constants.GAMEMODES.DRAMA_EVENT:
-			node_gm = load("res://gamemode_event.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_dramaevent/scene.tscn").instantiate()
 		Lt2Constants.GAMEMODES.ROOM:
-			node_gm = load("res://gamemode_room.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_room/scene.tscn").instantiate()
 		Lt2Constants.GAMEMODES.NARRATION:
-			node_gm = load("res://gamemode_narration.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_narration.tscn").instantiate()
 		Lt2Constants.GAMEMODES.MOVIE:
-			node_gm = load("res://gamemode_movie.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_movie.tscn").instantiate()
 		Lt2Constants.GAMEMODES.END_PUZZLE:
-			node_gm = load("res://gamemode_endpuzzle.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_endpuzzle.tscn").instantiate()
 		Lt2Constants.GAMEMODES.PUZZLE:
-			node_gm = load("res://gamemode_puzzle.tscn").instantiate()
+			node_gm = load("res://godot/gamemodes/gamemode_puzzle.tscn").instantiate()
 		_:
 			node_gm = null
 	

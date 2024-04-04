@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bdsb2jcteegom"]
 
-[ext_resource type="Script" path="res://gamemode_endpuzzle.gd" id="1_7xyar"]
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_endpuzzle.gd" id="1_7xyar"]
 
 [node name="gamemode_endpuzzle" type="Node2D"]
 script = ExtResource("1_7xyar")
