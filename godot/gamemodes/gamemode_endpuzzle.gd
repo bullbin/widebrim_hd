@@ -25,7 +25,8 @@ func load_init(state : Lt2State, screen_controller : Lt2ScreenController):
 	
 	state.id_event = target_event_id
 	
-	var node_dramaevent = load("res://gamemode_event.tscn").instantiate()
+	# TODO - Global these paths, this tripped me up
+	var node_dramaevent = load("res://godot/gamemodes/gamemode_dramaevent/scene.tscn").instantiate()
 	node_dramaevent.completed.connect(_terminate, CONNECT_DEFERRED)
 	node_dramaevent.load_init(state, node_screen_controller)
 	add_child(node_dramaevent)
