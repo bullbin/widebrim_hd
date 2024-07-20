@@ -1,19 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://chjyrf0f17hhk"]
+[gd_scene load_steps=7 format=3 uid="uid://chjyrf0f17hhk"]
 
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_dramaevent/scene.gd" id="1_r054f"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_dramaevent/root_character.gd" id="2_72q0y"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_dramaevent/twindow.gd" id="3_rd8yi"]
-[ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="4_oau75"]
+[ext_resource type="FontFile" uid="uid://cusockyx8iun7" path="res://font/font.fnt" id="4_0y2ek"]
 [ext_resource type="Script" path="res://godot/scripts/script_executor.gd" id="5_qkfkv"]
 
-[sub_resource type="FontVariation" id="FontVariation_vgmtm"]
-base_font = ExtResource("4_oau75")
-variation_embolden = 0.25
-
 [sub_resource type="LabelSettings" id="LabelSettings_esb4f"]
-line_spacing = 6.0
-font = SubResource("FontVariation_vgmtm")
-font_size = 31
+line_spacing = 4.0
+font = ExtResource("4_0y2ek")
+font_size = 30
 font_color = Color(0, 0, 0, 1)
 outline_color = Color(0.388235, 0.388235, 0.388235, 1)
 

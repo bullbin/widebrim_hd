@@ -1,25 +1,21 @@
-[gd_scene load_steps=14 format=3 uid="uid://cwiickfe2ytul"]
+[gd_scene load_steps=13 format=3 uid="uid://cwiickfe2ytul"]
 
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/scene.gd" id="1_strqb"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hintcoin.gd" id="2_awlbe"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/anim_root.gd" id="3_1wnd1"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/tobj.gd" id="4_jl62s"]
 [ext_resource type="Script" path="res://godot/scripts/madhatter_to_native/node_lt2_anim_deferred.gd" id="5_dhytq"]
-[ext_resource type="FontFile" uid="uid://bx8sc11gtqwy" path="res://font/Roboto-Regular.ttf" id="6_fkyq0"]
+[ext_resource type="FontFile" uid="uid://cusockyx8iun7" path="res://font/font.fnt" id="6_75kpb"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hud_ts.gd" id="7_604xf"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hud_bs.gd" id="8_luccn"]
 [ext_resource type="Script" path="res://godot/scripts/madhatter_to_native/node_lt2_anim_button_deferred.gd" id="9_cevq6"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/tobj_control.gd" id="10_iw2ul"]
 [ext_resource type="Script" path="res://godot/scripts/helper/helper_alpha_fade_target.gd" id="11_by4mt"]
 
-[sub_resource type="FontVariation" id="FontVariation_vgmtm"]
-base_font = ExtResource("6_fkyq0")
-variation_embolden = 0.25
-
 [sub_resource type="LabelSettings" id="LabelSettings_pbh6t"]
-line_spacing = 6.0
-font = SubResource("FontVariation_vgmtm")
-font_size = 31
+line_spacing = 4.0
+font = ExtResource("6_75kpb")
+font_size = 30
 font_color = Color(0, 0, 0, 1)
 outline_color = Color(0.388235, 0.388235, 0.388235, 1)
 

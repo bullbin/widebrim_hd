@@ -55,7 +55,7 @@ func _deferred_init(path_ani_relative : String, render_target : CanvasGroup = nu
 	var region;
 	var base_anim;
 	if _sprite_root.get_spritesheet() != null:
-		_node_root.texture = ImageTexture.create_from_image(_sprite_root.get_spritesheet())
+		_node_root.texture = _sprite_root.get_spritesheet()
 		for idx_frame in _sprite_root.get_count_frames():
 			region = _sprite_root.get_frame_region(idx_frame)
 			_maximal_size_px.x = max(region.size.x, _maximal_size_px.x)
@@ -64,7 +64,7 @@ func _deferred_init(path_ani_relative : String, render_target : CanvasGroup = nu
 	if _sprite_root.get_subanimation_name() != "":
 		_sprite_add = Lt2AssetSprite.new("sub/%s.spr" % _sprite_root.get_subanimation_name())
 		if _sprite_add.get_spritesheet() != null:
-			_node_add.texture = ImageTexture.create_from_image(_sprite_add.get_spritesheet())
+			_node_add.texture = _sprite_add.get_spritesheet()
 			
 			# TODO - Negative will not be handled well here
 			var max_add_offset = Vector2i(0,0)

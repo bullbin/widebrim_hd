@@ -6,7 +6,7 @@ const LT2_ANIM_COUNT_VARS 	: int = 16
 const LT2_ANIM_VAR_LEN		: int = 8
 const LT2_ANIM_VAR_EMPTY	: Array[int] = [0,0,0,0,0,0,0,0]
 
-var _spritesheet	: Image				= null
+var _spritesheet	: Texture2D			= null
 var _frames 		: Array[Rect2i] 	= []
 var _anims 			: Array[Lt2TypeAnimation] 	= []
 var _var_names 		: Array[String]		= []
@@ -22,7 +22,7 @@ func _init(path_arc : String):
 	
 	var file = FileAccess.open(path_anim_spec, FileAccess.READ)
 	if file != null:
-		_spritesheet = Image.load_from_file(path_spritesheet)
+		_spritesheet = load(path_spritesheet)
 		
 		var count_image = file.get_32()
 		
@@ -103,7 +103,7 @@ func _init(path_arc : String):
 				# TODO - Bad encoding!
 				_sub_anim_name = file.get_buffer(128).get_string_from_utf8()
 
-func get_spritesheet() -> Image:
+func get_spritesheet() -> Texture2D:
 	return _spritesheet
 
 func get_count_frames() -> int:

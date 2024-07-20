@@ -91,12 +91,12 @@ func input_enable():
 func set_background_bs(path_bg_relative : String) -> bool:
 	var path_bg = path_bg_relative.substr(0, len(path_bg_relative) - 3) + "png"
 	path_bg = Lt2Utils.get_asset_path("bg/%s" % path_bg)
-	var bg = Image.load_from_file(path_bg)
-	
+	var bg = load(path_bg)
+
 	if bg == null:
 		_node_bg_bs.texture = void_bg
 		return false
-	bg = ImageTexture.create_from_image(bg)
+	
 	_node_bg_bs.texture = bg
 	set_background_bs_overlay(0)
 	return true
@@ -104,12 +104,11 @@ func set_background_bs(path_bg_relative : String) -> bool:
 func set_background_ts(path_bg_relative : String) -> bool:
 	var path_bg = path_bg_relative.substr(0, len(path_bg_relative) - 3) + "png"
 	path_bg = Lt2Utils.get_asset_path("bg/%s" % path_bg)
-	var bg = Image.load_from_file(path_bg)
+	var bg = load(path_bg)
 	
 	if bg == null:
 		_node_bg_ts.texture = void_bg
 		return false
-	bg = ImageTexture.create_from_image(bg)
 	_node_bg_ts.texture = bg
 	set_background_ts_overlay(0)
 	return true

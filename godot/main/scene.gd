@@ -43,6 +43,8 @@ func _main():
 			node_gm = load("res://godot/gamemodes/gamemode_endpuzzle.tscn").instantiate()
 		Lt2Constants.GAMEMODES.PUZZLE:
 			node_gm = load("res://godot/gamemodes/gamemode_puzzle.tscn").instantiate()
+		Lt2Constants.GAMEMODES.HAMSTER_NAME:
+			node_gm = load("res://godot/gamemodes/gamemode_hamster_name.tscn").instantiate()
 		_:
 			node_gm = null
 	

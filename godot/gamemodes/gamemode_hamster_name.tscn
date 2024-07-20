@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://xsc753rvnls4"]
+
+[ext_resource type="Script" path="res://godot/gamemodes/gamemode_hamster_name.gd" id="1_q0ua8"]
+
+[node name="GamemodeHamsterName" type="Node2D"]
+script = ExtResource("1_q0ua8")
