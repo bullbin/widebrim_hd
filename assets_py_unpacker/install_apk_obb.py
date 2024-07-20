@@ -4,7 +4,9 @@ from os import walk, remove, getcwd
 from sys import argv
 import subprocess
 
-PATH_OUT : str = (join(dirname(getcwd()), "assets"))
+PATH_OUT            : str = (join(dirname(getcwd()), "assets"))
+PATH_INT_REL_FONT   : str = "data\\font\\font.dat"
+PATH_REL_FONT       : str = "font.fnt"
 
 def extract_game_assets(path_apk : str, path_obb : str, path_out : str) -> bool:
     apk_worked = extract_apk(path_apk, path_out)
@@ -17,7 +19,10 @@ def extract_game_assets(path_apk : str, path_obb : str, path_out : str) -> bool:
     output = apk_worked and obb_worked
     if output:
         convert_audio(path_out)
-        print("\nDone! You may now start widebrim_hd.")
+        if convert_font_to_bnfont(join(path_out, PATH_INT_REL_FONT), join(path_out, PATH_REL_FONT)):
+            print("Converted font!\n\nDone! You may now start widebrim_hd.")
+        else:
+            print("\nDone with errors: Font failed to convert. widebrim_hd will use a fallback.")
     else:
         print("\nFailed. Please check all the required files are present. widebrim_hd may not function correctly.")
 
@@ -88,7 +93,7 @@ def convert_audio(path_out : str) -> bool:
     return True
 
 def do():
-    print("widebrim_hd asset extractor 0.0.1a\n")
+    print("widebrim_hd asset extractor 0.0.1b\n")
 
 
     if len(argv) < 3:

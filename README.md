@@ -64,4 +64,5 @@ Thanks goes to...
  - The contributors of [PyCriCodecs](https://github.com/Youjose/PyCriCodecs), audio support is planned and this library is responsible for making it possible ❤️
  - Christian Robertson for the font [Roboto](https://fonts.google.com/specimen/Roboto), I'm lazy and can't be bothered to finish reversing `font.dat` but this is similar enough
  - ssh for figuring out the decryption routine for the HD Layton games (RIP ZenHAX)
+ - [creativelynameduser](https://github.com/creativelynameduser) for their help with decoding the in-game font format
  - Everyone who helped with [widebrim](https://github.com/bullbin/widebrim) and by extension, [madhatter](https://github.com/bullbin/madhatter) for understanding HD file formats
