@@ -8,5 +8,5 @@ assets/data*
 *.obj
 assets_py_unpacker/lib/lt2_decrypt.c
 *.pyc
-assets/font_0.png
-assets/font.fnt
+font.fnt
+font_0.png

@@ -29,7 +29,7 @@ class BinaryReader():
     def readU32(self) -> int:
         return self.readUInt(4)
     
-def convert_font_to_bnfont(path_in : str, path_out : str) -> bool:
+def convert_font_to_bmfont(path_in : str, path_out : str) -> bool:
     """Convert fonts in the Layton2HD format to the text variant of the BMFont format.
 
     Args:

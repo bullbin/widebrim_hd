@@ -5,10 +5,11 @@ from sys import argv
 import subprocess
 
 PATH_OUT            : str = (join(dirname(getcwd()), "assets"))
+PATH_OUT_FONT       : str = dirname(getcwd())
 PATH_INT_REL_FONT   : str = "data\\font\\font.dat"
 PATH_REL_FONT       : str = "font.fnt"
 
-def extract_game_assets(path_apk : str, path_obb : str, path_out : str) -> bool:
+def extract_game_assets(path_apk : str, path_obb : str, path_out : str, path_out_font : str) -> bool:
     apk_worked = extract_apk(path_apk, path_out)
     obb_worked = extract_obb(path_obb, path_out)
     if not(apk_worked):
@@ -19,14 +20,14 @@ def extract_game_assets(path_apk : str, path_obb : str, path_out : str) -> bool:
     output = apk_worked and obb_worked
     if output:
         convert_audio(path_out)
-        if convert_font_to_bnfont(join(path_out, PATH_INT_REL_FONT), join(path_out, PATH_REL_FONT)):
+        if convert_font_to_bmfont(join(path_out, PATH_INT_REL_FONT), join(path_out_font, PATH_REL_FONT)):
             print("Converted font!\n\nDone! You may now start widebrim_hd.")
         else:
-            print("\nDone with errors: Font failed to convert. widebrim_hd will use a fallback.")
+            print("\nFailed. Asset extraction completed but font failed to convert. widebrim_hd may not function correctly.")
     else:
         print("\nFailed. Please check all the required files are present. widebrim_hd may not function correctly.")
 
-    return apk_worked and obb_worked
+    return output
 
 def convert_audio(path_out : str) -> bool:
     
@@ -115,7 +116,7 @@ def do():
                 break
     
     if path_apk != "" and path_obb != "":
-        extract_game_assets(path_apk, path_obb, PATH_OUT)
+        extract_game_assets(path_apk, path_obb, PATH_OUT, PATH_OUT_FONT)
     else:
         if path_apk != "" and path_obb == "":
             print("Failed. Missing OBB path.")
