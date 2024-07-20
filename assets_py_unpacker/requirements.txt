@@ -1,3 +1,5 @@
-Cython==3.0.9
+Cython==3.0.10
 ffmpeg_python==0.2.0
 PyCriCodecs==0.4.8
+numpy==1.23.5
+opencv_python==4.8.0.76

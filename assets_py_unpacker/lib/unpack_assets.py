@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 from os.path import normpath, join, dirname
 from os import cpu_count, makedirs
 
@@ -24,6 +24,8 @@ except ModuleNotFoundError:
 import zipfile
 import time
 from math import ceil
+import cv2
+import numpy as np
 
 from threading import Thread, Lock
 
@@ -41,7 +43,7 @@ class OneLinePrinter():
         print(line + " " * (self.__max_line - len(line)), end="\r", flush=True)
         self.__lock.release()
 
-def extract_apk(path_apk : str, path_out : str) -> bool:
+def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
     """Extracts assets from the LAYTON2 APK.
 
     Important game databases are stored as part of the APK. This is required to load the game.
@@ -49,6 +51,7 @@ def extract_apk(path_apk : str, path_out : str) -> bool:
     Args:
         path_apk (str): Path to LAYTON2 APK.
         path_out (str): Export path; will be created if non-existent.
+        path_out_icon (str): Image export path; will be created if non-existent.
 
     Returns:
         bool: True if extraction was successful.
@@ -66,10 +69,14 @@ def extract_apk(path_apk : str, path_out : str) -> bool:
     try:
         with zipfile.ZipFile(path_apk, 'r') as apk:
             path_targets = []
+            path_icons = []
 
             for path in apk.namelist():
-                if normpath(path).startswith("assets\\"):
+                path_norm = normpath(path)
+                if path_norm.startswith("assets\\"):
                     path_targets.append(path)
+                elif path_norm.startswith("res\\mipmap") and path_norm.endswith(".png"):
+                    path_icons.append(path)
             
             len_files = len(path_targets)
                 
@@ -106,6 +113,26 @@ def extract_apk(path_apk : str, path_out : str) -> bool:
                     printer.print("Extracting APK, ~%d/%d" % (done, len_files))
                 
                 threads_active = []
+            
+            printer.print("Extracting APK, %d/%d, finding icon..." % (done, len_files))
+            best_icon : np.ndarray = None
+            best_count = 0
+
+            for path in path_icons:
+                im_data = apk.read(path)
+                im : Optional[np.ndarray] = cv2.imdecode(np.fromstring(im_data, np.uint8), cv2.IMREAD_UNCHANGED)
+                if not(im is None):
+                    count_px = im.shape[0] * im.shape[1]
+                    if count_px:
+                        best_count = count_px
+                        best_icon = im
+            
+            if best_count > 0:
+                printer.print("Extracted APK, %d/%d" % (done + 1, len_files + 1))
+                makedirs(dirname(path_out_icon), exist_ok=True)
+                cv2.imwrite(path_out_icon, best_icon)
+            else:
+                printer.print("Extracted APK, %d/%d (no icon found)" % (done, len_files))
     
     except:
         print("")
@@ -216,5 +243,6 @@ def extract_obb(path_obb : str, path_out : str) -> bool:
         done += 1
         printer.print("Extracting OBB, ~%d/%d" % (done, len_files))
     
+    printer.print("Extracted OBB, %d/%d" % (len_files, len_files))
     print("")
     return True
