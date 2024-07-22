@@ -89,7 +89,7 @@ func _do_on_movemode_start():
 	# TODO - Click animation hidden, maybe modify btn code to ensure frame
 	_btn_movemode.hide()
 	for exit in _node_exit:
-		exit.set_transparency(1.0)
+		exit.enable()
 		exit.show()
 	
 	print("MOVEMODE!")
@@ -98,11 +98,29 @@ func _do_on_event_start(idx : int):
 	var trigger = _place_data.event_spawners[idx]
 	print("EVENT ", trigger.id_event)
 	node_screen_controller.input_disable()
+	_trigger_explamation(trigger.id_event)
 	_set_event(trigger.id_event)
 	completed.emit()
 
 func _do_on_tobj_start(idx : int):
 	print(idx)
+
+func _trigger_explamation(id_event : int):
+	var is_exclamation = false
+	
+	if id_event >= EVENT_LIMIT_PUZZLE and id_event < EVENT_LIMIT_TEA:
+		var entry_ev_inf = obj_state.dlz_ev_inf2.find_entry(id_event)
+		if entry_ev_inf != null:
+			var puzzle_state = obj_state.get_puzzle_state_internal(entry_ev_inf.data_puzzle)
+			if puzzle_state != null and not(puzzle_state.solved):
+				is_exclamation = true
+	
+	# TODO - Support herbtea
+	if is_exclamation:
+		# TODO - Graphics
+		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x72))
+	else:
+		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
 
 func _do_on_exit_start(idx : int):
 	node_screen_controller.input_disable()
@@ -110,7 +128,7 @@ func _do_on_exit_start(idx : int):
 	
 	if exit.does_spawn_event():
 		if exit.does_spawn_exclamation():
-			SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x72))
+			_trigger_explamation(exit.destination)
 		else:
 			SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
 		print("EXIT EVENT ", exit.destination)
@@ -248,7 +266,8 @@ func _load_room_data():
 	idx_spawner = 0
 	for event_spawner in _place_data.event_spawners:
 		if event_spawner.id_image != 0:
-			var anim = Lt2GodotAnimation.new("eventobj/obj_%d.spr" % event_spawner.id_image)
+			# TODO - Figure out first byte
+			var anim = Lt2GodotAnimation.new("eventobj/obj_%d.spr" % (event_spawner.id_image & 0xff))
 			anim.set_flippable_position(event_spawner.bounding.position)
 			anim.set_animation_from_index(1)
 			_node_anim_root.add_child(anim)
@@ -269,11 +288,10 @@ func _load_room_data():
 	for exit in _place_data.exits:
 		var node = Lt2GodotAnimatedButton.new("map/exit_%d.spr" % exit.id_image, "gfx2", "gfx", "", false, null)
 		node.position = exit.bounding.position
+		node.hide()
 		
-		if exit.allow_immediate_activation():
-			node.set_transparency(0.0)
-		else:
-			node.hide()
+		if not(exit.allow_immediate_activation()):
+			node.disable()
 		
 		node.set_custom_boundary(exit.bounding.size)
 		node.activated.connect(_do_on_exit_start.bind(idx_spawner))

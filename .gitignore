@@ -11,3 +11,4 @@ assets_py_unpacker/lib/lt2_decrypt.c
 font/font.fnt
 font/font_0.png
 icon.png
+*.tmp
