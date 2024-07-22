@@ -75,10 +75,11 @@ func _position_text_reward():
 
 func play_voiceline():
 	if _target_voice != -1 and _idx_voice != -1:
-		print("TODO: Voiceline %03d_%d" % [_target_voice, _idx_voice])
+		SoundController.play_voiceline(_target_voice, _idx_voice, Callable())
+		# print("TODO: Voiceline %03d_%d" % [_target_voice, _idx_voice])
 
 func stop_active_voiceline():
-	pass
+	SoundController.stop_voiceline()
 
 func do_on_resume():
 	stop_active_voiceline()
@@ -166,6 +167,7 @@ func load_talkscript(id : int):
 			
 		if _target_char != null and _target_char.get_visibility() and _target_char.get_char_position() in POS_TO_ANIM:
 			_node_window.set_animation_from_name(POS_TO_ANIM[_target_char.get_char_position()])
+		raw_text.close()
 
 func get_next_token() -> String:
 	var remaining = len(_text_complete) - _idx_char

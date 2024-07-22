@@ -179,3 +179,5 @@ func _init(path_data : String):
 			file.get_8()
 		
 		id_sound = file.get_16()
+		
+		file.close()

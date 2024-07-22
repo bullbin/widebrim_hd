@@ -117,6 +117,11 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 					_delay_by_time_active = entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
 					pause_execution()	
 			
+			Lt2Constants.SCRIPT_OPERANDS.PLAY_SOUND:
+				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(operands[0]))
+			
+			Lt2Constants.SCRIPT_OPERANDS.PLAY_STREAM:
+				SoundController.play_sfx(Lt2Utils.get_sample_audio_from_sfx_id(operands[0]))
 			_:
 				return false
 	return true

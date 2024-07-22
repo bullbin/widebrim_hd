@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cwiickfe2ytul"]
+[gd_scene load_steps=14 format=3 uid="uid://cwiickfe2ytul"]
 
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/scene.gd" id="1_strqb"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hintcoin.gd" id="2_awlbe"]
@@ -18,6 +18,12 @@ font = ExtResource("6_75kpb")
 font_size = 30
 font_color = Color(0, 0, 0, 1)
 outline_color = Color(0.388235, 0.388235, 0.388235, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_biwro"]
+line_spacing = 4.0
+font = ExtResource("6_75kpb")
+font_size = 30
+font_color = Color(0, 0, 0, 1)
 
 [node name="gamemode_room" type="Node2D"]
 script = ExtResource("1_strqb")
@@ -164,3 +170,4 @@ z_index = 1
 offset_right = 40.0
 offset_bottom = 23.0
 text = "hello world"
+label_settings = SubResource("LabelSettings_biwro")

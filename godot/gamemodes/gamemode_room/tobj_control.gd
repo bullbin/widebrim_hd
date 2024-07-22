@@ -16,11 +16,7 @@ func _ready():
 	wait_position.y -= 9
 	
 	anim_twindow.set_flippable_position(Vector2(0,0))
-	
-	anim_twindow.set_animation_from_index(1)
 	anim_icon.set_flippable_position(icon_position)
-	anim_icon.set_animation_from_index(3)
-	
 	anim_cursor.set_flippable_position(wait_position)
 	anim_cursor.set_animation_from_index(1)
 	
@@ -29,6 +25,15 @@ func _ready():
 	do_hint_mode()
 
 func do_hint_mode():
+	anim_twindow.set_animation_from_index(1)
+	anim_icon.set_animation_from_index(3)
+	_node_screen_controller.input_disable()
+	_canvas_controller.fade_visibility(1.0, 1.0, Callable())
+	anim_cursor.set_transparency(0.5)
+
+func do_tobj_mode(char : int, idx_tobj : int):
+	anim_twindow.set_animation_from_index(0)
+	anim_icon.set_animation_from_index(char)
 	_node_screen_controller.input_disable()
 	_canvas_controller.fade_visibility(1.0, 1.0, Callable())
 	anim_cursor.set_transparency(0.5)

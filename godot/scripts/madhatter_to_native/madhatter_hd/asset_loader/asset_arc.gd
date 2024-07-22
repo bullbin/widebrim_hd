@@ -102,6 +102,8 @@ func _init(path_arc : String):
 				
 				# TODO - Bad encoding!
 				_sub_anim_name = file.get_buffer(128).get_string_from_utf8()
+		
+		file.close()
 
 func get_spritesheet() -> Texture2D:
 	return _spritesheet

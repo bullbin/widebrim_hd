@@ -42,6 +42,7 @@ func _init(path_gds : String, read_as_talkscript : bool):
 				_:
 					print("GDS failed to load due to unknown type! Err @ ", file.get_position())
 					break
+		file.close()
 
 func get_count_instruction() -> int:
 	return len(_opcodes)

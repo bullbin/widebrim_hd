@@ -35,3 +35,36 @@ static func get_asset_path(path_relative_root : String) -> String:
 	# Not accurate, we don't scope this all the time
 	filepath = "res://assets/data/%s" % path_relative_root
 	return filepath
+
+static func get_synth_audio_from_sfx_id(id : int) -> AudioStream:
+	var path_sfx = ""
+	
+	# TODO - Not strictly correct, this doesn't handle edge cases
+	# Some IDs are multipart, the SDK can also have 4len IDs but this isn't used
+	if id >= 200:
+		# SI
+		path_sfx = get_asset_path("sound/si/%03d.ogg" % id)
+	elif id >= 50:
+		# GE
+		path_sfx = get_asset_path("sound/ge/%03d.ogg" % id)
+	else:
+		# SY
+		path_sfx = get_asset_path("sound/sy/%03d.ogg" % id)
+		
+	if path_sfx != "" and ResourceLoader.exists(path_sfx):
+		return load(path_sfx)
+	else:
+		print("Lt2Utils: Audio path resolution failed: %s" % path_sfx)
+	return null
+
+static func get_sample_audio_from_sfx_id(id : int) -> AudioStream:
+	var path_sfx = ""
+	
+	# TODO - Not correct
+	path_sfx = get_asset_path("sound/ST_%03d.ogg" % id)
+		
+	if path_sfx != "" and ResourceLoader.exists(path_sfx):
+		return load(path_sfx)
+	else:
+		print("Lt2Utils: Audio path resolution failed: %s" % path_sfx)
+	return null

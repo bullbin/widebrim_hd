@@ -30,6 +30,8 @@ func _init(path : String):
 				condition.data = file.get_16()
 				entry.conditions.append(condition)
 			_flags.append(entry)
+		
+		file.close()
 
 func get_group_index_from_chapter(chapter : int) -> int:
 	var idx : int = 0

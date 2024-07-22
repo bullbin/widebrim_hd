@@ -45,6 +45,8 @@ func _init(path : String):
 				room.add_entry(entry)
 			
 			_rooms.append(room)
+		
+		file.close()
 
 func get_room_entries(id_room : int) -> AutoEventRoomCollection:
 	if id_room >= 0 and id_room < len(_rooms):

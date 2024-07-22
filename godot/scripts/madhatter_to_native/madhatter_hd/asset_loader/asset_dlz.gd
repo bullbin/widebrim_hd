@@ -33,3 +33,5 @@ func _init(path : String):
 		file.seek(offset_data)
 		for idx_entry in range(count_entries):
 			_entries.append(_load_entry(file.get_buffer(size_entry)))
+		
+		file.close()

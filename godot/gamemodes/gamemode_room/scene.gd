@@ -77,12 +77,10 @@ func _set_event(id_event : int):
 			if obj_state.get_event_viewed(id_event):
 				id_event += 1
 		5:
-			var ev_entry = obj_state.dlz_ev_fix.find_entry(id_event)
-			if ev_entry != null:
-				if obj_state.get_puzzle_solved_count() >= ev_entry.idx_puzzle_internal:
-					id_event += 2
-				elif obj_state.get_event_viewed(id_event):
-					id_event += 1
+			if obj_state.get_puzzle_solved_count() >= entry_inf.data_puzzle:
+				id_event += 2
+			elif obj_state.get_event_viewed(id_event):
+				id_event += 1
 	
 	obj_state.id_event = id_event
 	obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
@@ -111,6 +109,10 @@ func _do_on_exit_start(idx : int):
 	var exit = _place_data.exits[idx]
 	
 	if exit.does_spawn_event():
+		if exit.does_spawn_exclamation():
+			SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x72))
+		else:
+			SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
 		print("EXIT EVENT ", exit.destination)
 		# TODO - Do explamation effect
 		_set_event(exit.destination)
@@ -118,6 +120,17 @@ func _do_on_exit_start(idx : int):
 	
 	else:
 		obj_state._id_room = exit.destination
+		match exit.id_sound:
+			0:
+				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe6))
+			1:
+				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe7))
+			3:
+				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xeb))
+			4:
+				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe9))
+			_:
+				pass
 		
 		# TODO - Handoff (transition, same state reload, etc)
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.ROOM)
@@ -135,6 +148,7 @@ func _do_on_hint_start(idx : int):
 	
 	_idx_last_hint_triggered = idx
 	_node_hintcoin.do_hint_coin_position(_place_data.hint_coins[idx].bounding.position + _place_data.hint_coins[idx].bounding.size / 2)
+	SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x74))
 	
 	_do_on_hint_end()
 
@@ -172,15 +186,19 @@ func _load_room_data():
 	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
 	_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [obj_state.get_id_room(), obj_state.get_id_subroom()])
 
+	print(_place_data.id_sound)
+
 	var raw_text = FileAccess.open(Lt2Utils.get_asset_path("nazo/jiten/p_%d.txt" % _place_data.id_nametag), FileAccess.READ)
 	if raw_text != null:
 		_text_place.text = raw_text.get_as_text()
+		raw_text.close()
 	else:
 		_text_place.text = ""
 	
 	raw_text = FileAccess.open(Lt2Utils.get_asset_path("txt/mokuteki/goal_%d.txt" % obj_state.objective), FileAccess.READ)
 	if raw_text != null:
 		_text_objective.text = raw_text.get_as_text()
+		raw_text.close()
 	else:
 		_text_objective.text = ""
 	

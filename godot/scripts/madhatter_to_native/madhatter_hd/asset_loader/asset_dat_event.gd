@@ -25,3 +25,5 @@ func _init(path_data : String):
 			characters_visibility[idx] = file.get_8() == 1
 		for idx in range(8):
 			characters_idx_anim[idx] = file.get_8()
+		
+		file.close()

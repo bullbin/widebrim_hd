@@ -178,6 +178,7 @@ func write_save(path : String) -> bool:
 			file.store_8(0)			# + Padding(30)
 		for _idx_pad in range(67):	# Tea(3),Hamster(35)
 			file.store_8(0)			# + Padding(24) + HState(1),Unk(1) + Padding(3)
+		file.close()
 		
 	return file != null
 
@@ -200,3 +201,5 @@ func read_save(path : String):
 		chapter = file.get_32()
 		_id_room = file.get_32()
 		_id_room_sub = file.get_32()
+		
+		file.close()

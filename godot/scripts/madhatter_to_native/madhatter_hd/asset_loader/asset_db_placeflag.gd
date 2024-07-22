@@ -58,6 +58,8 @@ func _init(path : String):
 				entry_subroom.idx_event_counter = file.get_8()
 				entry_subroom.decode_mode = file.get_8()
 				entry_subroom.decode_data = file.get_8()
+		
+		file.close()
 
 func get_room(idx_room : int) -> PlaceFlagRoomEntry:
 	if 0 <= idx_room and idx_room < len(_rooms):
