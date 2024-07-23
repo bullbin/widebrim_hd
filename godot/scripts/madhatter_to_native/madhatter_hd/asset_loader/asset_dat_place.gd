@@ -175,9 +175,10 @@ func _init(path_data : String):
 			else:
 				encountered_empty = true
 		
-		for _idx in range(0x30):
+		# TODO - Currently unreferenced according to Ghidra
+		for _idx in range(0x7a):
 			file.get_8()
 		
-		id_sound = file.get_16()
+		id_sound = file.get_32()
 		
 		file.close()

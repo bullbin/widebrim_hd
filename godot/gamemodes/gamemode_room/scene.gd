@@ -204,8 +204,6 @@ func _load_room_data():
 	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
 	_place_data = Lt2AssetPlaceData.new(PATH_DATA_PLACE % [obj_state.get_id_room(), obj_state.get_id_subroom()])
 
-	print(_place_data.id_sound)
-
 	var raw_text = FileAccess.open(Lt2Utils.get_asset_path("nazo/jiten/p_%d.txt" % _place_data.id_nametag), FileAccess.READ)
 	if raw_text != null:
 		_text_place.text = raw_text.get_as_text()
@@ -299,6 +297,10 @@ func _load_room_data():
 		_node_exit.append(node)
 		
 		idx_spawner += 1
+	
+	var entry_snd_fix = obj_state.dlz_snd_fix.find_entry(_place_data.id_sound)
+	if entry_snd_fix != null:
+		SoundController.play_bgm(entry_snd_fix.id_bgm)
 	
 func _parse_loaded_data():
 	pass

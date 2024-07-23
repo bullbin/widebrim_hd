@@ -36,6 +36,8 @@ func _ready():
 	
 	load_init(state, get_parent().node_screen_controller, script)
 	
+	# TODO - Inaccuracy, this needs to be held global state
+	var ev_inf_id_sound = 0
 	var ev_inf_entry = state.dlz_ev_inf2.find_entry(state.id_event)
 	if ev_inf_entry != null:
 		# TODO - Unknown when this is done, also should not be done here (room only...) with storyflag
@@ -47,6 +49,7 @@ func _ready():
 			state.set_puzzle_id(ev_inf_entry.data_puzzle)
 			state.set_gamemode(Lt2Constants.GAMEMODES.PUZZLE)
 			state.set_gamemode_next(Lt2Constants.GAMEMODES.END_PUZZLE)
+		ev_inf_id_sound = ev_inf_entry.data_sound_set
 		
 		if ev_inf_entry.idx_story_flag != -1:
 			print("Story flag set.")
@@ -60,12 +63,26 @@ func _ready():
 		_characters[idx_char].set_visibility(_data.characters_visibility[idx_char])
 		_characters[idx_char].set_char_position(_data.characters_slot[idx_char])
 	
+	# LoadEvent
 	screen_controller.set_background_bs("map/main%d.bgx" % _data.map_id_bs)
 	screen_controller.set_background_ts("event/sub%d.bgx" % _data.map_id_ts)
+	# TODO - Nullify held event ID
+	if _data.custom_sound_set != 2 and _data.intro_mode != 3:
+		# Load BGM from ID
+		var entry_snd_fix = state.dlz_snd_fix.find_entry(ev_inf_id_sound)
+		if entry_snd_fix != null:
+			SoundController.play_bgm(entry_snd_fix.id_bgm)
+	else:
+		# TODO - Unknown mode, potentially queue BGM but do not play yet
+		if _data.intro_mode == 3:
+			SoundController.stop_bgm()
+		else:
+			state.id_held_bgm = ev_inf_id_sound
 	
 	_node_twindow.build_character_map(_data, _characters)
 	_node_twindow.completed.connect(resume_execution)
 	
+	# Do
 	match _data.intro_mode:
 		1:
 			resume_execution()

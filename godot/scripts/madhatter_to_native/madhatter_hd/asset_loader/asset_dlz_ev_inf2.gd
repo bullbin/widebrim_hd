@@ -19,9 +19,3 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntryEvInf2:
 	output.idx_event_viewed = buffer.decode_s16(8)
 	output.idx_story_flag = buffer.decode_s16(10)
 	return output
-
-func find_entry(id_event : int):
-	return super(id_event)
-
-func get_entry(idx : int):
-	return super(idx)

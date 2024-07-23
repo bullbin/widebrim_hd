@@ -1,6 +1,7 @@
 extends Node
 
 var _node_audio_bgm 		: AudioStreamPlayer = null
+var _bgm_queued_id			: int 				= -1
 var _callback_bgm			: Callable = Callable()
 var _callback_bgm_done		: bool = true
 
@@ -40,7 +41,10 @@ func play_bgm(id : int):
 	# This is not accurate but the audio sections for both LAYTON2DS and LAYTON2HD
 	#     don't disassemble nicely and it's faster to hack this then read assembly
 	#     or do call fixups for everything
+	if id == _bgm_queued_id:
+		return
 	
+	_bgm_queued_id = id
 	var id_base 	: String = "BG_%03d.ogg" % id
 	var loop_base 	: float = 0
 	

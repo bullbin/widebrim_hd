@@ -13,9 +13,3 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntryEvFix:
 	output.idx_puzzle_internal = buffer.decode_u16(2)
 	output.idx_event_viewed = buffer.decode_u16(4)
 	return output
-
-func find_entry(id_event : int):
-	return super(id_event)
-
-func get_entry(idx : int):
-	return super(idx)
