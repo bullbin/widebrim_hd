@@ -10,14 +10,14 @@ var state = Lt2State.new()
 var node_gm : Node2D = null
 
 func _exit_tree():
-	if Lt2Constants.DEBUG_SAVE_ENABLE:
+	if Lt2Constants.DEBUG_SAVE_ENABLE_WRITE:
 		state.write_save(Lt2Constants.DEBUG_SAVE_PATH)
 		print("Exported save. Now quitting...")
 		
 func _ready():
 	node_screen_controller.configure_room_mode()
 	
-	if Lt2Constants.DEBUG_SAVE_ENABLE:
+	if Lt2Constants.DEBUG_SAVE_ENABLE_READ:
 		state.read_save(Lt2Constants.DEBUG_SAVE_PATH)
 		print("Save imported.")
 	

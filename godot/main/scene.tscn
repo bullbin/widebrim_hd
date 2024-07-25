@@ -7,6 +7,7 @@
 
 [node name="scene" type="Node2D"]
 script = ExtResource("1_q4vfu")
+safety_margin = null
 
 [node name="debug_bad_area" type="ColorRect" parent="."]
 visible = false

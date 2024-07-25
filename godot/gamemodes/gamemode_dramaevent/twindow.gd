@@ -4,6 +4,7 @@ signal completed
 
 const PATH_TALKSCRIPT 	: String = "event/t%d_%03d_%d.txt"
 const PATH_NAMETAG		: String = "eventchr/chr%d_n.spr"
+const TIME_BETWEEN_TICK	: float = 0.1
 
 @onready var _node_window = Lt2GodotAnimation.new("event/twindow.spr", get_node("CanvasGroup"))
 @onready var _node_reward = Lt2GodotAnimation.new("event/mokuteki_w.spr", get_node("CanvasGroup"))
@@ -20,6 +21,7 @@ var _data		: Lt2AssetEventData 			= null
 var _text_complete 	: String 	= ""
 var _idx_char 		: int 		= 0
 var _time_visible	: float		= 0
+var _time_bet_tick	: float		= 0
 var _awaiting_input : bool		= false
 var _completed		: bool		= false
 
@@ -31,6 +33,8 @@ var _pitch			: int		= -1
 var _target_voice	: int		= -1
 var _idx_voice		: int 		= -1
 var _in_mode_dial	: bool		= true
+
+var _tick_audio		: AudioStream = null
 
 const POS_TO_ANIM = {0:"LEFT",
 					2:"RIGHT",
@@ -124,8 +128,8 @@ func build_character_map(data : Lt2AssetEventData, characters : Array[Lt2GodotCh
 	var img_name : Lt2GodotAnimation = null
 	var pos_window = _node_window.get_variable_as_vector_from_index(0)
 	var pos_name = Vector2(0,0)
-	for char in data.characters:
-		img_name = Lt2GodotAnimation.new(PATH_NAMETAG % char, get_node("CanvasGroup"))
+	for char_id in data.characters:
+		img_name = Lt2GodotAnimation.new(PATH_NAMETAG % char_id, get_node("CanvasGroup"))
 		img_name.set_animation_from_index(1)
 		pos_name = img_name.get_variable_as_vector_from_index(0)
 		pos_name = pos_window - pos_name
@@ -153,6 +157,8 @@ func load_talkscript(id : int):
 	if raw_text != null:
 		_text_complete = raw_text.get_as_text()
 		raw_text.close()
+		
+		_text_complete = _text_complete.replace("\r", "")
 		var encoded = _text_complete.split("|")
 		
 		_anim_start = encoded[1]
@@ -168,6 +174,17 @@ func load_talkscript(id : int):
 		if _target_char != null and _target_char.get_visibility() and _target_char.get_char_position() in POS_TO_ANIM:
 			_node_window.set_animation_from_name(POS_TO_ANIM[_target_char.get_char_position()])
 		raw_text.close()
+		
+		var id_sfx : int;
+		match _pitch:
+			1, 4:
+				id_sfx = 0x28
+			3, 6:
+				id_sfx = 0x2a
+			_:
+				id_sfx = 0x29
+		
+		_tick_audio = Lt2Utils.get_synth_audio_from_sfx_id(id_sfx)
 
 func get_next_token() -> String:
 	var remaining = len(_text_complete) - _idx_char
@@ -200,7 +217,13 @@ func get_next_token() -> String:
 			return ""
 		"&":
 			# SetAni
-			pass
+			var str_control =  "&"
+			while len(_text_complete) - _idx_char >= 1:
+				str_control += _text_complete[_idx_char]
+				_idx_char += 1
+				if str_control[-1] == "&":
+					break
+			return str_control
 		_:
 			return output
 	
@@ -225,15 +248,15 @@ func apply_token_command(token : String) -> bool:
 						_target_char.set_talk_state(false)
 				"c":
 					_node_text.text = ""
-					_idx_char += 2	# TODO - not sure why this is two...
+					_idx_char += 1	# TODO - not sure why this is two...
 				"w":
 					_time_visible -= 0.5
 					if _target_char != null:
 						_target_char.set_talk_state(false)
 		"#":
-			pass
+			print("Skip", token)
 		"&":
-			pass
+			print("Skip", token)
 		_:
 			return false
 	
@@ -258,6 +281,7 @@ func _process(delta):
 		if not(_awaiting_input):
 			if _node_text.is_visible():
 				_time_visible += delta
+				_time_bet_tick += delta
 				
 				while _time_visible > Lt2Constants.TIMING_LT2_TO_MILLISECONDS and not(_awaiting_input):
 					var token = get_next_token()
@@ -268,6 +292,10 @@ func _process(delta):
 							
 						_node_text.text += token
 						_time_visible -= Lt2Constants.TIMING_LT2_TO_MILLISECONDS
+						if _time_bet_tick >= TIME_BETWEEN_TICK:
+							if _target_voice == -1 or _idx_voice == -1:
+								SoundController.play_sfx(_tick_audio)
+							_time_bet_tick -= TIME_BETWEEN_TICK
 				
 				# Done!
 				_enter_end_state_if_done()

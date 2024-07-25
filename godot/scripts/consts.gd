@@ -289,4 +289,5 @@ const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1136)
 const CONFIG_GAME_LANGUAGE : LANGUAGES = LANGUAGES.EN_EU
 
 const DEBUG_SAVE_PATH : String = "res://state.sav"
-const DEBUG_SAVE_ENABLE : bool = true
+const DEBUG_SAVE_ENABLE_READ 	: bool = true
+const DEBUG_SAVE_ENABLE_WRITE 	: bool = true
