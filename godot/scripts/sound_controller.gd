@@ -4,6 +4,7 @@ var _node_audio_bgm 		: AudioStreamPlayer = null
 var _bgm_queued_id			: int 				= -1
 var _callback_bgm			: Callable = Callable()
 var _callback_bgm_done		: bool = true
+var _bgm_active_tween		: Tween = null
 
 var _node_audio_sfx 		: AudioStreamPlayer = null
 var _callback_sfx			: Callable = Callable()
@@ -41,6 +42,12 @@ func play_bgm(id : int):
 	# This is not accurate but the audio sections for both LAYTON2DS and LAYTON2HD
 	#     don't disassemble nicely and it's faster to hack this then read assembly
 	#     or do call fixups for everything
+	
+	# TODO - Check audio behaviour
+	if _bgm_active_tween != null:
+		_bgm_active_tween.kill()
+	_node_audio_bgm.volume_db = 0
+		
 	if id == _bgm_queued_id:
 		return
 	
@@ -67,14 +74,23 @@ func play_bgm(id : int):
 func stop_bgm():
 	pass
 
-func fade_bgm():
-	pass
+func fade_bgm(target_vol : float):
+	# TODO - Not accurate
+	fade_bgm_2(target_vol, 0.5)
 
 func play_bgm_2():
 	pass
 
-func fade_bgm_2():
-	pass
+func fade_bgm_2(target_vol : float, duration : float):
+	# TODO - Set quadratic falloff instead of linear
+	if _bgm_active_tween != null:
+		_bgm_active_tween.kill()
+	
+	# TODO - Global mixing for channel volumes
+	target_vol = (1 - clamp(target_vol, 0, 1)) * -60
+		
+	var _bgm_active_tween = get_tree().create_tween()
+	_bgm_active_tween.tween_property(_node_audio_bgm, "volume_db", target_vol, duration)
 
 func play_sfx(audio : AudioStream):
 	audio.loop = false

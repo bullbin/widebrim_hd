@@ -139,6 +139,46 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			
 			Lt2Constants.SCRIPT_OPERANDS.PLAY_STREAM:
 				SoundController.play_sfx(Lt2Utils.get_sample_audio_from_sfx_id(operands[0]))
+			
+			# TODO - Research this, not enough known about audio subsystem
+			Lt2Constants.SCRIPT_OPERANDS.FADE_IN_BGM:
+				if operands[0] != 1:
+					print("Audio: FadeInBgm unimplemented operand", operands[0])
+				
+				SoundController.fade_bgm_2(1, operands[1] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+			
+			Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_BGM:
+				if operands[0] != 0:
+					print("Audio: FadeOutBgm unimplemented operand", operands[0])
+				
+				SoundController.fade_bgm_2(0, operands[1] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
+			
+			# TODO - Audio fading - does this pause execution? Strange timing in 10030
+			Lt2Constants.SCRIPT_OPERANDS.FADE_IN_BGM2:
+				if operands[0] != 1:
+					print("Audio: FadeInBgm2 unimplemented operand", operands[0])
+				
+				var entry = _state.dlz_tm_def.find_entry(operands[1])
+				if entry != null:
+					var fade_time = entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
+					SoundController.fade_bgm_2(1, fade_time)
+			
+			Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_BGM2:
+				if operands[0] != 0:
+					print("Audio: FadeOutBgm2 unimplemented operand", operands[0])
+				
+				var entry = _state.dlz_tm_def.find_entry(operands[1])
+				if entry != null:
+					var fade_time = entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
+					SoundController.fade_bgm_2(0, fade_time)
+			
+			Lt2Constants.SCRIPT_OPERANDS.PLAY_BGM:
+				if operands[1] != 1:
+					print("Audio: BGM queueing unimplemented!")
+				if operands[2] != 0:
+					print("Audio: BGM unknown PLAY_BGM operands", operands)
+				
+				SoundController.play_bgm(operands[0])
 			_:
 				return false
 	return true
