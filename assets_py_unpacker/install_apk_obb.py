@@ -10,7 +10,7 @@ PATH_OUT_ICON       : str = join(dirname(getcwd()), "icon.png")
 PATH_INT_REL_FONT   : str = "data\\font\\font.dat"
 PATH_REL_FONT       : str = "font.fnt"
 
-def extract_game_assets(path_apk : str, path_obb : str, path_out : str, path_out_font : str, path_out_icon : str) -> bool:
+def extract_game_assets_pre_split(path_apk : str, path_obb : str, path_out : str, path_out_font : str, path_out_icon : str) -> bool:
     apk_worked = extract_apk(path_apk, path_out, path_out_icon)
     obb_worked = extract_obb(path_obb, path_out)
     if not(apk_worked):
@@ -117,7 +117,7 @@ def do():
                 break
     
     if path_apk != "" and path_obb != "":
-        extract_game_assets(path_apk, path_obb, PATH_OUT, PATH_OUT_FONT, PATH_OUT_ICON)
+        extract_game_assets_pre_split(path_apk, path_obb, PATH_OUT, PATH_OUT_FONT, PATH_OUT_ICON)
     else:
         if path_apk != "" and path_obb == "":
             print("Failed. Missing OBB path.")
