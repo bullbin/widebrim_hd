@@ -43,7 +43,7 @@ class OneLinePrinter():
         print(line + " " * (self.__max_line - len(line)), end="\r", flush=True)
         self.__lock.release()
 
-def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
+def extract_apk(path_apk : str, path_out : str, path_out_icon : str, valid_prefixes : List[str], find_icon : bool = False) -> bool:
     """Extracts assets from the LAYTON2 APK.
 
     Important game databases are stored as part of the APK. This is required to load the game.
@@ -52,6 +52,8 @@ def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
         path_apk (str): Path to LAYTON2 APK.
         path_out (str): Export path; will be created if non-existent.
         path_out_icon (str): Image export path; will be created if non-existent.
+        valid_prefixes (List[str]): List of filename prefixes considered valid for extraction.
+        find_icon (bool, optional): True to attempt to find best icon in APK. Defaults to False.
 
     Returns:
         bool: True if extraction was successful.
@@ -73,10 +75,13 @@ def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
 
             for path in apk.namelist():
                 path_norm = normpath(path)
-                if path_norm.startswith("assets\\"):
-                    path_targets.append(path)
-                elif path_norm.startswith("res\\mipmap") and path_norm.endswith(".png"):
+                if find_icon and path_norm.startswith("res\\mipmap") and path_norm.endswith(".png"):
                     path_icons.append(path)
+                else:
+                    for prefix in valid_prefixes:
+                        if path_norm.startswith(prefix + "\\"):
+                            path_targets.append(path)
+                            break
             
             len_files = len(path_targets)
                 
@@ -114,25 +119,28 @@ def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
                 
                 threads_active = []
             
-            printer.print("Extracting APK, %d/%d, finding icon..." % (done, len_files))
-            best_icon : np.ndarray = None
-            best_count = 0
+            if find_icon:
+                printer.print("Extracting APK, %d/%d, finding icon..." % (done, len_files))
+                best_icon : np.ndarray = None
+                best_count = 0
 
-            for path in path_icons:
-                im_data = apk.read(path)
-                im : Optional[np.ndarray] = cv2.imdecode(np.fromstring(im_data, np.uint8), cv2.IMREAD_UNCHANGED)
-                if not(im is None):
-                    count_px = im.shape[0] * im.shape[1]
-                    if count_px:
-                        best_count = count_px
-                        best_icon = im
-            
-            if best_count > 0:
-                printer.print("Extracted APK, %d/%d" % (done + 1, len_files + 1))
-                makedirs(dirname(path_out_icon), exist_ok=True)
-                cv2.imwrite(path_out_icon, best_icon)
+                for path in path_icons:
+                    im_data = apk.read(path)
+                    im : Optional[np.ndarray] = cv2.imdecode(np.fromstring(im_data, np.uint8), cv2.IMREAD_UNCHANGED)
+                    if not(im is None):
+                        count_px = im.shape[0] * im.shape[1]
+                        if count_px:
+                            best_count = count_px
+                            best_icon = im
+                
+                if best_count > 0:
+                    printer.print("Extracted APK, %d/%d!" % (done + 1, len_files + 1))
+                    makedirs(dirname(path_out_icon), exist_ok=True)
+                    cv2.imwrite(path_out_icon, best_icon)
+                else:
+                    printer.print("Extracted APK, %d/%d (no icon found)!" % (done, len_files))
             else:
-                printer.print("Extracted APK, %d/%d (no icon found)" % (done, len_files))
+                printer.print("Extracted APK, %d/%d!" % (done, len_files))
     
     except:
         print("")
@@ -145,7 +153,7 @@ def extract_apk(path_apk : str, path_out : str, path_out_icon : str) -> bool:
     print("")
     return True
 
-def extract_obb(path_obb : str, path_out : str) -> bool:
+def extract_obb(path_obb : str, path_out : str, valid_prefixes : List[str]) -> bool:
     """Extracts assets from the LAYTON2 OBB.
 
     The majority of the game is stored encrypted in the OBB. De-salting the data can be slow so expect this function to take some time.
@@ -153,6 +161,7 @@ def extract_obb(path_obb : str, path_out : str) -> bool:
     Args:
         path_obb (str): Path to LAYTON2 OBB.
         path_out (str): Export path; will be created if non-existent.
+        valid_prefixes (List[str]): List of filename prefixes considered valid for extraction.
 
     Returns:
         bool: True if extraction was successful.
@@ -160,6 +169,10 @@ def extract_obb(path_obb : str, path_out : str) -> bool:
 
     with open(path_obb, 'rb') as data_in:
         data_obb = bytearray(data_in.read())
+
+    valid_prefixes_cleaned = []
+    for prefix in valid_prefixes:
+        valid_prefixes_cleaned.append(prefix.replace("\\", "/") + "/")
 
     def get_file_table() -> List[Tuple[str, int, int]]:
 
@@ -178,7 +191,10 @@ def extract_obb(path_obb : str, path_out : str) -> bool:
                     name += chr(table[offset_name])
                     offset_name += 1
 
-                output.append((name, offset, size))
+                for prefix in valid_prefixes_cleaned:
+                    if name.startswith(prefix):
+                        output.append((name, offset, size))
+                        break
 
             return output
 
@@ -243,6 +259,6 @@ def extract_obb(path_obb : str, path_out : str) -> bool:
         done += 1
         printer.print("Extracting OBB, ~%d/%d" % (done, len_files))
     
-    printer.print("Extracted OBB, %d/%d" % (len_files, len_files))
+    printer.print("Extracted OBB, %d/%d!" % (len_files, len_files))
     print("")
     return True

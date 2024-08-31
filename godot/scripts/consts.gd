@@ -13,7 +13,7 @@ enum LANGUAGES {
 }
 
 const LANGUAGE_TO_LANGUAGE = {
-	LANGUAGES.JP 	: "jp",
+	LANGUAGES.JP 	: "ja",
 	LANGUAGES.EN_EU : "en",
 	LANGUAGES.EN_US : "en",
 	LANGUAGES.ES 	: "es",
@@ -25,15 +25,15 @@ const LANGUAGE_TO_LANGUAGE = {
 }
 
 const LANGUAGE_TO_REGION = {
-	LANGUAGES.JP	: "jp",
-	LANGUAGES.EN_EU	: "eu",
-	LANGUAGES.EN_US : "us",
-	LANGUAGES.ES 	: "eu",
-	LANGUAGES.FR 	: "eu",
-	LANGUAGES.IT 	: "eu",
-	LANGUAGES.DE 	: "eu",
-	LANGUAGES.NL 	: "eu",
-	LANGUAGES.KO 	: "eu"
+	LANGUAGES.JP	: "JP",
+	LANGUAGES.EN_EU	: "EU",
+	LANGUAGES.EN_US : "US",
+	LANGUAGES.ES 	: "EU",
+	LANGUAGES.FR 	: "EU",
+	LANGUAGES.IT 	: "EU",
+	LANGUAGES.DE 	: "EU",
+	LANGUAGES.NL 	: "EU",
+	LANGUAGES.KO 	: "EU"
 }
 
 enum SCRIPT_OPERANDS {

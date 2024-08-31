@@ -12,3 +12,7 @@ font/font.fnt
 font/font_0.png
 icon.png
 *.tmp
+
+# bull's dumb changes
+*/nopush_*
+nopush_*

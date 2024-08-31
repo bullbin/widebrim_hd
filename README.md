@@ -12,32 +12,45 @@ widebrim HD is a work-in-progress Godot-based high-level engine recreation for t
 ### Required Prerequisites
 You will need the following:
 
- - A dump of LAYTON2 HD for Android, including both the APK and OBB
+ - A dump of LAYTON2 HD for Android
+	 - For older versions, you will need the APK and OBB
+	 - For newer versions, you will need unmodified base and InstallAssets APKs
+	 - Global builds are preferable for wider language support
  - Godot 4.2 or newer
- - Python 3.11
+ - Python 3+
  - [PyCriCodecs](https://github.com/Youjose/PyCriCodecs), tested with 0.4.8
 
 ### Optional Prerequisites
 To improve your experience, the following is recommended:
 
- - Environment for building Python extensions (e.g., Microsoft Build Tools for Visual Studio)
- - FFMPEG with libvorbis (e.g., any modern FFMPEG 'essentials' build)
-	- This should be accessible from any terminal, i.e., on PATH for Windows.
+ - FFMPEG with libvorbis (i.e., any modern FFMPEG 'essentials' build)
+	 - This can either be installed system-wide (i.e., on PATH for Windows) or [downloaded locally](https://www.ffmpeg.org/download.html) **(-f flag must be specified during install)**
+	 - **Strongly recommended.** Without FFMPEG, audio is left uncompressed and consumes significant storage space.
+- If installing from an OBB, an environment for building Python extensions (e.g., Microsoft Build Tools for Visual Studio)
+	- **This is not needed for newer versions using the split APK** because encryption has been removed. The provided extension only accelerates OBB decryption.
 
 ### Installation Guide
 
- 1. Install the required prerequisites (and optional for a better experience)
+For obvious reasons, widebrim HD is not bundled with any game assets. A Python script is provided to unpack game archives and convert relevant assets to native formats. Install by doing the following:
+
+ 1. Install the required prerequisites (and optional ones for a better experience).
  2. Clone the repository.
  3. Start a terminal inside `widebrim_hd/assets_py_unpacker` and run the following:
     - Install requirements with `pip install -r requirements.txt`
-	     - <i>(Optional, <b>recommended</b>)</i> Build Cython extension for faster unpacking with `python setup.py build_ext --inplace`
-    - Unpack and convert assets with `python install_apk_obb.py <path to apk> <path to obb>`
-	     - If you do not have the optional prerequisites installed, this will be **very** slow and will consume significantly more space. **This is the intended way to install the assets**, but if this is too slow you can try [QuickBMS](https://aluigi.altervista.org/quickbms.htm) with [this script](https://aluigi.altervista.org/bms/layton_curious_village.bms). You will need to manually extract the asset folder from the APK and combine both the OBB output and APK files into the `widebrim_hd/assets` folder. **This method is deprecated and will be incompatible in the future.** Audio support is not planned with this method.
- 4. Import `widebrim_hd/project.godot` into the Godot Editor.
+	     - <i>(Optional, <b>recommended if installing from an OBB</b>)</i> Build Cython extension for faster unpacking with `python setup.py build_ext --inplace`.
+    - Unpack and convert assets with `python install_apk_obb.py <path to base apk> <path to additional data>`.
+	    - The additional data can either be the OBB or InstallAssets APK. **New versions must use the InstallAssets APK for additional data and not be modified to merge the APKs.** Use the base APK that corresponds to the additional data. 
+	    - The install script has arguments that can be set to change its behavior:
+		    - `-f <path to ffmpeg executable>` to use a local build of FFMPEG if system build is not available.
+		    - `--jp`, `--en_eu`, `--en_us`, `--es`, `--fr`, `--it`, `--de`, `--nl`, `--ko` to filter the installed languages to save space. Global builds have all languages except Japanese. Default behavior exports all languages; this will be overridden if any language flag is set. Multiple language flags can be set simultaneously. **This does not currently modify the Godot install** so make sure to set `CONFIG_GAME_LANGUAGE` in `widebrim_hd\godot\scripts\consts.gd`. **By default, English (Europe) is used**.
+	    - To see all options, do `python install_apk_obb.py --help`
+ 4. Import `widebrim_hd/project.godot` into the Godot Editor. This will take a long time for first boot - even a single-language install has around 12,000 assets!
 
 ## Quickstart: How do I use this?
 
 Open Godot, load the project and press Play in the top-right. By default, the game loads and saves a DS-like save slot as `state.sav` in the project root. To delete all progression and restart, delete this save.
+
+**Exporting is experimental and will be that way until foundational asset loaders are complete.** It is expected that exporting will break between commits in this early stage of the project. **For now, play entirely in editor.**
 
 ## What is widebrim HD for?
 
