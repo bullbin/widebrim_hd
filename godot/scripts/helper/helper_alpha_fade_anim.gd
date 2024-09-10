@@ -1,10 +1,10 @@
-class_name CanvasFadeController
+class_name CanvasAnimFadeController
 
 extends Node2D
 
-@onready var parent : CanvasItem = get_parent()
+@onready var parent : Lt2GodotAnimation = get_parent()
 
-@onready var _fade_target	: float 	= parent.modulate.a
+@onready var _fade_target	: float 	= parent.get_transparency()
 var _fade_start				: float		= 0
 var _fade_duration 			: float		= 0
 var _fade_time_remaining 	: float		= 0
@@ -17,7 +17,7 @@ func _process(delta):
 		
 		var strength 	: float = 1 - (_fade_time_remaining / _fade_duration)
 		strength *= (_fade_target - _fade_start)
-		parent.modulate.a = _fade_start + strength
+		parent.set_transparency(_fade_start + strength)
 		
 		if _fade_time_remaining <= 0:
 			if not(_fade_callback.is_null()):
@@ -25,13 +25,13 @@ func _process(delta):
 			_fade_callback = Callable()
 
 func fade_visibility(target : float, duration : float, callback : Callable):
-	if _fade_time_remaining == 0 and target == parent.modulate.a:
+	if _fade_time_remaining == 0 and target == parent.get_transparency():
 		# If we're already at correct visibility stage, do callback now
 		if not(callback.is_null()):
 			callback.call()
 	else:
 		duration 				= max(0, duration)
-		_fade_start				= parent.modulate.a
+		_fade_start				= parent.get_transparency()
 		_fade_duration 			= duration
 		_fade_time_remaining 	= duration
 		_fade_target 			= target
@@ -47,7 +47,7 @@ func fade_visibility(target : float, duration : float, callback : Callable):
 		else:
 			if not(callback.is_null()):
 				callback.call()
-			parent.modulate.a = target
-			
+			parent.set_transparency(target)
+
 func is_active() -> bool:
 	return _fade_time_remaining > 0

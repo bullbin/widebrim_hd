@@ -14,9 +14,10 @@ var _node_hint			: Dictionary = {}
 
 @onready var _text_place 		: Label = get_node("hud_ts/map_place/text_place")
 @onready var _text_objective 	: Label = get_node("hud_ts/map_purpose/text_purpose")
-@onready var _hud_ts			: Control	= get_node("hud_ts")
+@onready var _hud_ts			: Control = get_node("hud_ts")
 
 @onready var _btn_movemode		: Lt2GodotAnimatedButtonDeferred = get_node("hud_bs/movemode")
+@onready var _tobj_controller	: Control = get_node("hud_bs/tobj_control")
 
 const EVENT_LIMIT_TEA 		: int = 30000
 const EVENT_LIMIT_PUZZLE 	: int = 20000
@@ -24,6 +25,7 @@ const EVENT_LIMIT_MIN 		: int = 10000
 const ID_EVENT_UNK			: int = 0x5303
 
 var _idx_last_hint_triggered = 0
+var in_move_mode : bool = false
 
 func _has_autoevent() -> bool:
 	var collection = obj_state.db_autoevent.get_room_entries(obj_state.get_id_room())
@@ -85,14 +87,43 @@ func _set_event(id_event : int):
 	obj_state.id_event = id_event
 	obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+		if in_move_mode:
+			_do_on_movemode_end()
+			get_viewport().set_input_as_handled()
+
+func _do_on_movemode_end():
+	in_move_mode = false
+	
+	for key in _node_hint.keys():
+		_node_hint[key].set_process_unhandled_input(true)
+		
+	_btn_movemode.enable()
+	_btn_movemode.show()
+	
+	var idx_exit = 0
+	for exit in _place_data.exits:
+		var node = _node_exit[idx_exit]
+		node.hide()
+		
+		if not(exit.allow_immediate_activation()):
+			node.disable()
+		
+		idx_exit += 1
+
 func _do_on_movemode_start():
+	in_move_mode = true
+	
 	# TODO - Click animation hidden, maybe modify btn code to ensure frame
+	for key in _node_hint.keys():
+		_node_hint[key].set_process_unhandled_input(false)
+		
 	_btn_movemode.hide()
+	
 	for exit in _node_exit:
 		exit.enable()
 		exit.show()
-	
-	print("MOVEMODE!")
 
 func _do_on_event_start(idx : int):
 	var trigger = _place_data.event_spawners[idx]
@@ -102,8 +133,8 @@ func _do_on_event_start(idx : int):
 	_set_event(trigger.id_event)
 	completed.emit()
 
-func _do_on_tobj_start(idx : int):
-	print(idx)
+func _do_on_tobj_start(id_char : int, idx : int):
+	_tobj_controller.do_tobj_mode(id_char, idx)
 
 func _trigger_explamation(id_event : int):
 	var is_exclamation = false
@@ -168,27 +199,27 @@ func _do_on_hint_start(idx : int):
 	_node_hintcoin.do_hint_coin_position(_place_data.hint_coins[idx].bounding.position + _place_data.hint_coins[idx].bounding.size / 2)
 	SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x74))
 	
-	_do_on_hint_end()
+	await _node_hintcoin.on_hint_coin_anim_finished
 
-func _do_on_hint_end():
 	var id_room = obj_state.get_id_room()
 	if id_room == 0x5c:
 		id_room - 0x26
 	
 	obj_state.room_hint_state.set_hint_state(id_room, _idx_last_hint_triggered, true)
+	node_screen_controller.input_enable()
+	_tobj_controller.do_hint_mode()
+	
+	await _tobj_controller.tobj_overview_done
 	
 	if _idx_last_hint_triggered == 0 and id_room == 3:
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
 		obj_state.id_event = 10080
 		completed.emit()
-	else:
-		node_screen_controller.input_enable()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	node_screen_controller.configure_room_mode()
 	_btn_movemode.activated.connect(_do_on_movemode_start)
-	_node_hintcoin.on_hint_coin_anim_finished.connect(_do_on_hint_end)
 	
 	if _has_autoevent():
 		# Will not have faded in, stop early.
@@ -236,7 +267,7 @@ func _load_room_data():
 		var zone = ActivatableRect.new()
 		zone.position = tobj.bounding.position
 		zone.size = tobj.bounding.size
-		zone.activated.connect(_do_on_tobj_start.bind(idx_spawner))
+		zone.activated.connect(_do_on_tobj_start.bind(tobj.id_char, tobj.id_text))
 		_node_anim_root.add_child(zone)
 		idx_spawner += 1
 	

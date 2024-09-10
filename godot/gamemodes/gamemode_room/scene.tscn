@@ -1,9 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://cwiickfe2ytul"]
+[gd_scene load_steps=13 format=3 uid="uid://cwiickfe2ytul"]
 
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/scene.gd" id="1_strqb"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hintcoin.gd" id="2_awlbe"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/anim_root.gd" id="3_1wnd1"]
-[ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/tobj.gd" id="4_jl62s"]
 [ext_resource type="Script" path="res://godot/scripts/madhatter_to_native/node_lt2_anim_deferred.gd" id="5_dhytq"]
 [ext_resource type="FontFile" uid="uid://cusockyx8iun7" path="res://font/font.fnt" id="6_75kpb"]
 [ext_resource type="Script" path="res://godot/gamemodes/gamemode_room/hud_ts.gd" id="7_604xf"]
@@ -42,43 +41,6 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("3_1wnd1")
-
-[node name="tobj_old" type="Control" parent="."]
-visible = false
-y_sort_enabled = true
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("4_jl62s")
-
-[node name="tobj_window" type="Control" parent="tobj_old"]
-y_sort_enabled = true
-anchors_preset = 0
-script = ExtResource("5_dhytq")
-path_animation = "tobj/window.spr"
-
-[node name="icon" type="Control" parent="tobj_old/tobj_window"]
-y_sort_enabled = true
-anchors_preset = 0
-script = ExtResource("5_dhytq")
-path_animation = "tobj/icon.spr"
-
-[node name="cursor_wait" type="Control" parent="tobj_old/tobj_window"]
-y_sort_enabled = true
-anchors_preset = 0
-script = ExtResource("5_dhytq")
-path_animation = "cursor_wait.spr"
-
-[node name="text" type="Label" parent="tobj_old/tobj_window"]
-z_index = 1
-y_sort_enabled = true
-layout_mode = 0
-offset_right = 303.0
-offset_bottom = 43.0
-text = "You found a hint coin!"
-label_settings = SubResource("LabelSettings_pbh6t")
-vertical_alignment = 1
 
 [node name="hud_ts" type="Control" parent="."]
 layout_mode = 3
@@ -154,7 +116,6 @@ name_anim_click = "click"
 one_shot = true
 
 [node name="tobj_control" type="Control" parent="hud_bs"]
-visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -167,7 +128,7 @@ script = ExtResource("11_by4mt")
 
 [node name="text" type="Label" parent="hud_bs/tobj_control/CanvasGroup"]
 z_index = 1
-offset_right = 40.0
-offset_bottom = 23.0
-text = "hello world"
+offset_right = 175.0
+offset_bottom = 80.0
 label_settings = SubResource("LabelSettings_biwro")
+vertical_alignment = 1

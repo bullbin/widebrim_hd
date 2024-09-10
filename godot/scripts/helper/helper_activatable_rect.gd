@@ -40,7 +40,7 @@ func remove_visualizer():
 		_visualizer.queue_free()
 		_visualizer = null
 
-func _input(event):
+func _unhandled_input(event):
 	if _is_enabled:
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			var is_in_range = Rect2(Vector2(), size).has_point(get_local_mouse_position())

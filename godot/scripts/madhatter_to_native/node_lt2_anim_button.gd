@@ -51,9 +51,8 @@ func set_custom_boundary(bound_size : Vector2) -> bool:
 func remove_custom_boundary():
 	_use_custom_size = false
 
-func _input(event):
+func _unhandled_input(event):
 	if _is_enabled and event is InputEventMouse:
-		
 		var size_test;
 		if _use_custom_size:
 			size_test = _custom_size
