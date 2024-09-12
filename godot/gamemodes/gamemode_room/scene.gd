@@ -130,30 +130,53 @@ func _do_on_movemode_start():
 
 func _do_on_event_start(idx : int):
 	var trigger = _place_data.event_spawners[idx]
-	print("EVENT ", trigger.id_event)
+	print("EventSetting ", trigger.id_event)
+	
+	# REF - 7_lt2RoomObject_ProcessEvents
+	if flag_photo_piece_in_loaded_area:
+		print("\tCancelled, piece loaded")
+		return
+	
+	# If this event has a corresponding photo piece event which isn't completed, do not active it
+	var entry_sb_pht = obj_state.dlz_sb_pht.find_entry_by_place(obj_state.get_id_room())
+	if entry_sb_pht != null:
+		if entry_sb_pht.id_event == trigger.id_event and not(obj_state.flags_photo_piece.get_bit(entry_sb_pht.id)):
+			print("\tCancelled, photo flag set")
+			return
+	
+	# Skip solved or viewed events
+	var entry_ev_inf = obj_state.dlz_ev_inf2.find_entry_no_null(trigger.id_event)
+	if entry_ev_inf.type_event == 1 and obj_state.flags_event_viewed.get_bit(entry_ev_inf.idx_event_viewed):
+		print("\tCancelled, event viewed")
+		return
+	if entry_ev_inf.type_event == 4 and obj_state.get_puzzle_state_internal(entry_ev_inf.data_puzzle).solved:
+		print("\tCancelled, puzzle solved")
+		return
+	
+	# TODO - 7_lt2RoomObject_ProcessEvents EventTeaFlag section
+	
 	node_screen_controller.input_disable()
 	_trigger_explamation(trigger.id_event)
 	_set_event(trigger.id_event)
 	completed.emit()
 
-func _do_on_tobj_start(id_char : int, idx : int):
-	_tobj_controller.do_tobj_mode(id_char, idx)
-
 func _trigger_explamation(id_event : int):
-	var is_exclamation = false
+	# REF - DoExclamation, cut functionality from 7_lt2RoomObject_DoExplanation
 	
-	if id_event >= EVENT_LIMIT_PUZZLE and id_event < EVENT_LIMIT_TEA:
-		var entry_ev_inf = obj_state.dlz_ev_inf2.find_entry(id_event)
-		if entry_ev_inf != null:
-			var puzzle_state = obj_state.get_puzzle_state_internal(entry_ev_inf.data_puzzle)
-			if puzzle_state != null and not(puzzle_state.solved):
+	# TODO - Load Icon_Buttons
+	
+	var entry_ev_base = obj_state.dlz_ev_fix.find_entry(id_event)
+	var is_exclamation = entry_ev_base == null
+	if entry_ev_base == null and id_event >= EVENT_LIMIT_PUZZLE and id_event < EVENT_LIMIT_TEA:
+		if not(obj_state.get_puzzle_state_internal(entry_ev_base.idx_puzzle_internal).solved):
 				is_exclamation = true
 	
 	# TODO - Support herbtea
 	if is_exclamation:
-		# TODO - Graphics
+		# TODO - Graphics, idx_anim = 3
 		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x72))
 	else:
+		# TODO - Graphics, idx_anim = 2
 		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
 
 func _do_on_exit_start(idx : int):
@@ -280,7 +303,7 @@ func _load_room_data():
 		var zone = ActivatableRect.new()
 		zone.position = tobj.bounding.position
 		zone.size = tobj.bounding.size
-		zone.activated.connect(_do_on_tobj_start.bind(tobj.id_char, tobj.id_text))
+		zone.activated.connect(_tobj_controller.do_tobj_mode.bind(tobj.id_char, tobj.id_text))
 		_node_anim_root.add_child(zone)
 		idx_spawner += 1
 	

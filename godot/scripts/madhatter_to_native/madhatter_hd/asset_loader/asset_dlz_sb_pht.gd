@@ -17,3 +17,9 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntrySubPhoto:
 	output.idx_place = buffer.decode_u8(1)
 	output.id_event = buffer.decode_s16(4)
 	return output
+
+func find_entry_by_place(id_place : int):
+	for entry in _entries:
+		if entry.idx_place == id_place:
+			return entry
+	return null

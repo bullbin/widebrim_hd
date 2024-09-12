@@ -19,3 +19,9 @@ func _load_entry(buffer : PackedByteArray) -> DlzEntryEvInf2:
 	output.idx_event_viewed = buffer.decode_s16(8)
 	output.idx_story_flag = buffer.decode_s16(10)
 	return output
+
+func find_entry_no_null(id : int) -> DlzEntryEvInf2:
+	var entry = find_entry(id)
+	if entry == null:
+		entry = DlzEntryEvInf2.new()
+	return entry

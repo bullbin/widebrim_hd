@@ -15,6 +15,7 @@ const PATH_DLZ_SNDFIX 	: String = "rc/snd_fix.dat"
 const PATH_DLZ_EVINF 	: String = "rc/ev_inf2.dat"
 const PATH_DLZ_EVFIX 	: String = "rc/ev_fix.dat"
 const PATH_DLZ_NZLST 	: String = "rc/nz_lst.dat"
+const PATH_DLZ_SBPHT	: String = "rc/sb_pht.dat"
 # ht_elm
 # ht_rcp
 const PATH_DLZ_HTEVENT	: String = "rc/ht_event.dat"
@@ -39,6 +40,7 @@ var dlz_snd_fix	 = DlzSoundSet.new(PATH_DLZ_SNDFIX)
 var dlz_ev_inf2  = DlzEventInfo.new(PATH_DLZ_EVINF)
 var dlz_ev_fix	 = DlzEventBase.new(PATH_DLZ_EVFIX)
 var dlz_nz_lst   = DlzNazoList.new(PATH_DLZ_NZLST)
+var dlz_sb_pht	 = DlzSubPhoto.new(PATH_DLZ_SBPHT)
 # ht_elm
 # ht_rcp
 var dlz_ht_evt = DlzHerbteaEvent.new(PATH_DLZ_HTEVENT)
@@ -79,7 +81,7 @@ func get_puzzle_state_internal(id_internal : int) -> Lt2AssetSaveSlot.PuzzleStat
 	var entry_nazo = dlz_nz_lst.find_entry(id_internal)
 	if entry_nazo != null:
 		return get_puzzle_state_external(entry_nazo.id_external)
-	return null
+	return PuzzleState.new()
 
 func get_event_viewed(id_event : int) -> bool:
 	var entry_event = dlz_ev_fix.find_entry(id_event)
