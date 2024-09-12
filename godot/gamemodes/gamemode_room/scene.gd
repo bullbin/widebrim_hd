@@ -27,6 +27,9 @@ const ID_EVENT_UNK			: int = 0x5303
 var _idx_last_hint_triggered = 0
 var in_move_mode : bool = false
 
+var flag_photo_piece_in_loaded_area = false
+var flag_photo_piece_taken = false
+
 func _has_autoevent() -> bool:
 	var collection = obj_state.db_autoevent.get_room_entries(obj_state.get_id_room())
 	if collection == null:
@@ -230,6 +233,7 @@ func _ready():
 	else:
 		_load_room_data()
 
+# REF - 7_lt2RoomObject_LoadRoomData, LoadRoomData
 func _load_room_data():
 	_update_subroom()
 	print("Room data: %d@%d" % [obj_state.get_id_room(), obj_state.get_id_subroom()])
@@ -241,6 +245,15 @@ func _load_room_data():
 		raw_text.close()
 	else:
 		_text_place.text = ""
+	
+	# obj_state.db_
+	
+	
+	
+	
+	
+	
+	
 	
 	raw_text = FileAccess.open(Lt2Utils.get_asset_path("txt/mokuteki/goal_%d.txt" % obj_state.objective), FileAccess.READ)
 	if raw_text != null:
