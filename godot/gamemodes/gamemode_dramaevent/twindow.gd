@@ -105,7 +105,7 @@ func switch_to_reward():
 	_node_reward.set_animation_from_index(1)
 	_node_reward.set_transparency(1.0)
 	_node_window.set_transparency(0.0)
-	_node_fade.fade_visibility(1.0, 0.5, Callable(self, "_position_text_reward"))
+	_node_fade.fade_visibility(1.0, 0.5, Callable(_position_text_reward))
 	_in_mode_dial = false
 	_update_position()
 	_reset_state()
@@ -113,7 +113,7 @@ func switch_to_reward():
 func switch_to_dialogue():
 	_node_window.set_transparency(1.0)
 	_node_reward.set_transparency(0.0)
-	_node_fade.fade_visibility(1.0, 0.5, Callable(self, "_position_text_dialogue"))
+	_node_fade.fade_visibility(1.0, 0.5, Callable(_position_text_dialogue))
 	_in_mode_dial = true
 	_update_position()
 	
@@ -263,7 +263,7 @@ func apply_token_command(token : String) -> bool:
 	return true
 
 func _emit_on_done():
-	emit_signal("completed")
+	completed.emit.call_deferred()
 
 func _enter_end_state_if_done():
 	if _idx_char >= len(_text_complete):

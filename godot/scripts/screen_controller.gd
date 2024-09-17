@@ -5,10 +5,7 @@ extends Node2D
 signal canvas_resize
 
 @export var use_smoothstep 		: bool 	= true
-@export var duration_default 	: float = 4
 
-var _timer_ts_callback 	: Callable 	= Callable()
-var _timer_bs_callback 	: Callable 	= Callable()
 var _timer_ts			: Timer	 	= Timer.new()
 var _timer_bs			: Timer		= Timer.new()
 
@@ -28,15 +25,8 @@ var _fade_target_ts : float = 1.0
 var _size_ts : Vector2 = Vector2(0,0)
 var _size_bs : Vector2 = Vector2(0,0)
 
-func _on_timer_ts_done():
-	if not(_timer_ts_callback.is_null()):
-		_timer_ts_callback.call()
-	_timer_ts_callback = Callable()
-
-func _on_timer_bs_done():
-	if not(_timer_bs_callback.is_null()):
-		_timer_bs_callback.call()
-	_timer_bs_callback = Callable()
+signal fade_btm_done
+signal fade_top_done
 
 func _get_opacity_ts():
 	return _node_fade_ts.self_modulate.a
@@ -52,8 +42,8 @@ func _set_opacity_bs(opacity : float):
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	_timer_ts.timeout.connect(_on_timer_ts_done)
-	_timer_bs.timeout.connect(_on_timer_bs_done)
+	_timer_ts.timeout.connect(fade_top_done.emit)
+	_timer_bs.timeout.connect(fade_btm_done.emit)
 	_timer_ts.one_shot = true
 	_timer_bs.one_shot = true
 	_sizer_master.ratio_changed.connect(_refresh_stored_sizes)
@@ -124,13 +114,13 @@ func set_background_ts_overlay(darkness : int):
 	modulation = min(max(modulation, 0.0), 1.0)
 	_node_bg_ts.modulate.a = 1 - modulation
 
-func shake_bs(duration : float):
+func shake_bs(_duration : float):
 	pass
 
-func shake_ts(duration : float):
+func shake_ts(_duration : float):
 	pass
 
-func flash_bs(duration : float):
+func flash_bs(_duration : float):
 	pass
 
 func _refresh_stored_sizes():
@@ -198,75 +188,96 @@ func configure_event_mode():
 
 # TODO - Both fading functions aren't amazingly safe or well animated
 #        This is pretty rudimentary but does the job
-func _fade_dual_internal(target : float, duration : float, on_done : Callable = Callable()):
+func _fade_dual_internal(target : float, duration : float):
 	# Attach to whatever screen is still active to ensure callbacks get cleared
-	if not(_timer_ts.is_stopped()):
-		_fade_bs_internal(target, duration)
-		_fade_ts_internal(target, duration, on_done)
-	elif not(_timer_bs.is_stopped()):
-		_fade_bs_internal(target, duration, on_done)
-		_fade_ts_internal(target, duration)
-	else:
-		if _get_opacity_bs() == target:
-			# Bottom screen is at target, attach to top
-			_fade_bs_internal(target, duration)
-			_fade_ts_internal(target, duration, on_done)
-		else:
-			# Attach to bottom screen, doesn't matter anymore
-			_fade_bs_internal(target, duration, on_done)
-			_fade_ts_internal(target, duration)
+	
+	# Workaround. Since timers operate independently, one timer lags behind other
+	#     by fractions of a millisecond. Fix this by waiting a small period if
+	#     permissable.
+	
+	# TODO - Better workaround preferred.
+	if (_timer_ts.time_left + _timer_bs.time_left) > 0:
+		var delay = max(_timer_ts.time_left, _timer_bs.time_left)
+		if delay < Lt2Constants.TIMING_LT2_TO_MILLISECONDS:
+			await get_tree().create_timer(delay).timeout
+			
+	var bs_ready = _fade_bs_internal(target, duration)
+	var ts_ready = _fade_ts_internal(target, duration)
+	
+	if bs_ready and ts_ready:
+		return
+	if bs_ready and not(ts_ready):
+		await fade_top_done
+		return
+	if ts_ready and not(bs_ready):
+		await fade_btm_done
+		return
+	
+	var prom = Promise.new(Promise.PromiseMode.ALL)
+	prom.add_signal(fade_btm_done)
+	prom.add_signal(fade_top_done)
+	await prom.satisfied
 
-func fade_out(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_dual_internal(1.0, duration, on_done)
+func fade_out_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	await _fade_dual_internal(1.0, duration)
 
-func fade_in(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_dual_internal(0.0, duration, on_done)
+func fade_in_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	await _fade_dual_internal(0.0, duration)
 
-func _fade_bs_internal(target : float, duration : float, on_done : Callable = Callable()):
+func fade_bs_async(target : float, duration : float):
+	if not(_fade_bs_internal(target, duration)):
+		await fade_btm_done
+
+func fade_ts_async(target : float, duration : float):
+	if not(_fade_ts_internal(target, duration)):
+		await fade_top_done
+
+func _fade_bs_internal(target : float, duration : float) -> bool:
 	if not(_timer_bs.is_stopped()):
 		# Override previous callable even though its not done
 		_timer_bs.stop()
-		_on_timer_bs_done()
-		_timer_bs_callback = on_done
+		fade_btm_done.emit()
 		_fade_target_bs = target
 		_timer_bs.start(duration)
 	else:
 		# If we're already faded out, don't do anything
-		if (_get_opacity_bs() == target):
-			if not(on_done.is_null()):
-				on_done.call()
+		if (_fade_target_bs == target):
+			return true
 		else:
-			_timer_bs_callback = on_done
+			# Start timer
 			_fade_target_bs = target
 			_timer_bs.start(duration)
+	return false
 
-func _fade_ts_internal(target : float, duration : float, on_done : Callable = Callable()):
+func _fade_ts_internal(target : float, duration : float) -> bool:
 	if not(_timer_ts.is_stopped()):
 		# Override previous callable even though its not done
 		_timer_ts.stop()
-		_on_timer_ts_done()
-		_timer_ts_callback = on_done
+		fade_top_done.emit()
 		_fade_target_ts = target
 		_timer_ts.start(duration)
 	else:
 		# If we're already faded out, don't do anything
-		if (_get_opacity_ts() == target):
-			if not(on_done.is_null()):
-				on_done.call()
+		if (_fade_target_ts == target):
+			return true
 		else:
 			# Start timer
-			_timer_ts_callback = on_done
 			_fade_target_ts = target
 			_timer_ts.start(duration)
+	return false
 
-func fade_in_bs(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_bs_internal(0.0, duration, on_done)
+func fade_in_bs_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	if not(_fade_bs_internal(0.0, duration)):
+		await fade_btm_done
 
-func fade_out_bs(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_bs_internal(1.0, duration, on_done)
+func fade_out_bs_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	if not(_fade_bs_internal(1.0, duration)):
+		await fade_btm_done
 
-func fade_in_ts(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_ts_internal(0.0, duration, on_done)
+func fade_in_ts_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	if not(_fade_ts_internal(0.0, duration)):
+		await fade_top_done
 
-func fade_out_ts(duration : float = duration_default, on_done : Callable = Callable()):
-	_fade_ts_internal(1.0, duration, on_done)
+func fade_out_ts(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+	if not(_fade_ts_internal(1.0, duration)):
+		await fade_top_done

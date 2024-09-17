@@ -32,9 +32,5 @@ func _do_on_complete():
 	completed.emit()
 
 func _terminate():
-	node_screen_controller.fade_out(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE,
-									Callable(self, "_do_on_complete"))
-
-func _unhandled_input(event):
-	if node_script_executor.on_touch():
-		get_viewport().set_input_as_handled()
+	await node_screen_controller.fade_out_async()
+	_do_on_complete()

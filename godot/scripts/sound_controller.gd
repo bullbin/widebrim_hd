@@ -16,12 +16,19 @@ var _callback_voice_done 	: bool = true
 
 var _bgm_loopmap_dict 	= {}
 
+signal on_sfx_done
+signal on_voice_done
+signal on_bgm_done
+
 func _ready():
 	_node_audio_bgm = AudioStreamPlayer.new()
 	_node_audio_bgm.finished.connect(stop_bgm)
 	_node_audio_sfx = AudioStreamPlayer.new()
 	_node_audio_voice = AudioStreamPlayer.new()
 	_node_audio_voice.finished.connect(stop_voiceline)
+	
+	_node_audio_sfx.finished.connect(Callable(on_sfx_done.emit))
+	
 	add_child(_node_audio_bgm)
 	add_child(_node_audio_sfx)
 	add_child(_node_audio_voice)
@@ -72,14 +79,14 @@ func play_bgm(id : int):
 	_node_audio_bgm.play()
 
 func stop_bgm():
-	pass
+	print("Sound: Unimplemented Stop BGM")
 
 func fade_bgm(target_vol : float):
 	# TODO - Not accurate
 	fade_bgm_2(target_vol, 0.5)
 
 func play_bgm_2():
-	pass
+	print("Sound: Unimplemented Play BGM 2")
 
 func fade_bgm_2(target_vol : float, duration : float):
 	# TODO - Set quadratic falloff instead of linear
@@ -90,12 +97,19 @@ func fade_bgm_2(target_vol : float, duration : float):
 	target_vol = (1 - clamp(target_vol, 0, 1)) * -60
 		
 	var _bgm_active_tween = get_tree().create_tween()
+	_bgm_active_tween.finished.connect(Callable(on_bgm_done.emit))
 	_bgm_active_tween.tween_property(_node_audio_bgm, "volume_db", target_vol, duration)
 
-func play_sfx(audio : AudioStream):
-	audio.loop = false
-	_node_audio_sfx.stream = audio
-	_node_audio_sfx.play()
+func play_sfx(audio : AudioStream) -> bool:
+	if _node_audio_sfx.playing:
+		_node_audio_sfx.stop()
+		_node_audio_sfx.finished.emit()
+
+	if audio != null:
+		audio.loop = false
+		_node_audio_sfx.stream = audio
+		_node_audio_sfx.play()
+	return audio != null
 
 func play_voiceline(id_root : int, id_sub : int, callback : Callable = Callable()):
 	var stream = load(Lt2Utils.get_asset_path("sound/%03d_%d.ogg" % [id_root, id_sub]))
@@ -109,6 +123,7 @@ func play_voiceline(id_root : int, id_sub : int, callback : Callable = Callable(
 	_node_audio_voice.play()
 
 func stop_voiceline():
+	on_voice_done.emit()
 	if not(_callback_voice_done):
 		if not(_callback_voice.is_null()):
 			_callback_voice.call()

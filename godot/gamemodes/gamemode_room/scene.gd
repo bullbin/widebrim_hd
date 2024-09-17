@@ -156,9 +156,13 @@ func _do_on_event_start(idx : int):
 	# TODO - 7_lt2RoomObject_ProcessEvents EventTeaFlag section
 	
 	node_screen_controller.input_disable()
-	_trigger_explamation(trigger.id_event)
+	
+	await _trigger_explamation(trigger.id_event)
+	
 	_set_event(trigger.id_event)
-	completed.emit()
+	
+	await _on_done()
+	
 
 func _trigger_explamation(id_event : int):
 	# REF - DoExclamation, cut functionality from 7_lt2RoomObject_DoExplanation
@@ -191,7 +195,6 @@ func _do_on_exit_start(idx : int):
 		print("EXIT EVENT ", exit.destination)
 		# TODO - Do explamation effect
 		_set_event(exit.destination)
-		completed.emit()
 	
 	else:
 		obj_state._id_room = exit.destination
@@ -209,7 +212,8 @@ func _do_on_exit_start(idx : int):
 		
 		# TODO - Handoff (transition, same state reload, etc)
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.ROOM)
-		completed.emit()
+	
+	await _on_done()
 
 func _do_on_hint_start(idx : int):
 	# TODO - Hide spawner! Only relevant on rerun
@@ -240,7 +244,12 @@ func _do_on_hint_start(idx : int):
 	if _idx_last_hint_triggered == 0 and id_room == 3:
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
 		obj_state.id_event = 10080
-		completed.emit()
+		await _on_done()
+
+func _on_done():
+	# REF - lt2RoomMode::Do
+	await node_screen_controller.fade_out_async()
+	completed.emit()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -252,7 +261,7 @@ func _ready():
 		print("AutoEvent %d" % obj_state.id_event)
 		obj_state.set_gamemode(Lt2Constants.GAMEMODES.DRAMA_EVENT)
 		
-		completed.emit()
+		await _on_done()
 	else:
 		_load_room_data()
 
@@ -287,7 +296,6 @@ func _load_room_data():
 	
 	node_screen_controller.set_background_bs("map/main%d.bgx" % _place_data.id_bg_main)
 	node_screen_controller.set_background_ts("map/map%d.bgx" % _place_data.id_bg_sub)
-	node_screen_controller.fade_in(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(node_screen_controller, "input_enable"))
 	
 	_hud_ts.set_mapicon_position(_place_data.position_map)
 	
@@ -368,6 +376,9 @@ func _load_room_data():
 	var entry_snd_fix = obj_state.dlz_snd_fix.find_entry(_place_data.id_sound)
 	if entry_snd_fix != null:
 		SoundController.play_bgm(entry_snd_fix.id_bgm)
+	
+	await node_screen_controller.fade_in_async()
+	node_screen_controller.input_enable()
 	
 func _parse_loaded_data():
 	pass

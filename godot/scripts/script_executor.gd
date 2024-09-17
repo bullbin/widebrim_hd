@@ -80,49 +80,52 @@ func _ready():
 			state.id_held_bgm = ev_inf_id_sound
 	
 	_node_twindow.build_character_map(_data, _characters)
-	_node_twindow.completed.connect(resume_execution)
 	
 	# Do
 	match _data.intro_mode:
 		1:
-			resume_execution()
+			pass
 		2:
-			screen_controller.fade_in_bs(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await screen_controller.fade_in_bs_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 		3, 0:
 			screen_controller.set_background_bs_overlay(120)
-			screen_controller.fade_in(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await screen_controller.fade_in_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 		_:
-			screen_controller.fade_in(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			screen_controller.fade_in_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 
 func _execute_instruction(opcode : int, operands : Array) -> bool:
-	if not(super(opcode, operands)):
+	var known = await super(opcode, operands)
+	if not(known):
 		match opcode:
 			Lt2Constants.SCRIPT_OPERANDS.SPRITE_ON:
 				if _char_in_slot(operands[0]):
 					_characters[operands[0]].set_visibility(true)
+					
 			Lt2Constants.SCRIPT_OPERANDS.SPRITE_OFF:
 				if _char_in_slot(operands[0]):
 					_characters[operands[0]].set_visibility(false)
+					
 			Lt2Constants.SCRIPT_OPERANDS.SET_SPRITE_POS:
 				if _char_in_slot(operands[0]):
 					_characters[operands[0]].set_char_position(operands[1])
+					
 			Lt2Constants.SCRIPT_OPERANDS.SET_SPRITE_ANIMATION:
 				if operands[0] in _data.characters:
 					_characters[_data.characters.find(operands[0])].set_animation_from_name(operands[1])
+					
 			Lt2Constants.SCRIPT_OPERANDS.DO_SPRITE_FADE:
 				if _char_in_slot(operands[0]):
-					pause_execution()
 					var duration_in_frames : float = 20.0
 					if operands[1] != 0:
 						duration_in_frames = (32.0 / abs(operands[1])) + 4
 					duration_in_frames *= Lt2Constants.TIMING_LT2_TO_MILLISECONDS
-					_characters[operands[0]].fade_visibility(operands[1] >= 0, duration_in_frames,
-															 Callable(self, "resume_execution"))
+					_characters[operands[0]].fade_visibility(operands[1] >= 0, duration_in_frames, Callable())
+					await get_tree().create_timer(duration_in_frames).timeout
 			
 			Lt2Constants.SCRIPT_OPERANDS.TEXT_WINDOW:
 				_node_twindow.load_talkscript(operands[0])
 				_node_twindow.switch_to_dialogue()
-				pause_execution()
+				await _node_twindow.completed
 			
 			Lt2Constants.SCRIPT_OPERANDS.SET_VOICE_ID:
 				_state.id_voice = operands[0]
@@ -130,9 +133,7 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			Lt2Constants.SCRIPT_OPERANDS.WAIT_FRAME2:
 				var entry = _state.dlz_tm_def.find_entry(operands[0])
 				if entry != null:
-					_delay_time = true
-					_delay_by_time_active = entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
-					pause_execution()	
+					await get_tree().create_timer(entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout
 			
 			Lt2Constants.SCRIPT_OPERANDS.PLAY_SOUND:
 				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(operands[0]))

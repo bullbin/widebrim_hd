@@ -3,31 +3,17 @@ class_name Lt2GodotScriptBase
 extends Node2D
 
 signal script_finished;
+signal _touch_received;
 
 var _screen_controller 		: Lt2ScreenController 	= null
 var _script 				: Lt2AssetScript 		= null
 var _state					: Lt2State				= null
-var _idx_instruction 		: int					= 0
-var _is_execution_paused 	: bool 					= true
+var _is_execution_done 		: bool 					= false
+var _working 				: bool 					= true
 
-var _debug_key = null
-var _delay_by_time_active : bool = false
-var _delay_awaiting_touch : bool = false
-var _delay_time	: float = 0
-
-func pause_execution():
-	_is_execution_paused = true
-	
-func resume_execution():
-	_is_execution_paused 	= false
-	_delay_by_time_active 	= false
-	_delay_awaiting_touch 	= false
-
-func on_touch() -> bool:
-	if _is_execution_paused and _delay_awaiting_touch:
-		resume_execution()
-		return true
-	return false
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+		_touch_received.emit()
 
 func _do_on_finished():
 	script_finished.emit()
@@ -42,16 +28,15 @@ func _init(state : Lt2State, screen_controller : Lt2ScreenController, script : L
 
 func _execute_instruction(opcode : int, operands : Array) -> bool:
 	match opcode:
+		
 		Lt2Constants.SCRIPT_OPERANDS.EXIT_SCRIPT:
-			_idx_instruction = _script.get_count_instruction()
+			_is_execution_done = true
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_IN:
-			pause_execution()
-			_screen_controller.fade_in(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await _screen_controller.fade_in_async()
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT:
-			pause_execution()
-			_screen_controller.fade_out(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await _screen_controller.fade_out_async()
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_PLACE:
 			_state.set_id_room(operands[0])
@@ -85,17 +70,13 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			_screen_controller.set_background_ts(operands[0])
 		
 		Lt2Constants.SCRIPT_OPERANDS.WAIT_FRAME:
-			_delay_time = true
-			_delay_by_time_active = operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
-			pause_execution()	
+			await get_tree().create_timer(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_IN_ONLY_MAIN:
-			pause_execution()
-			_screen_controller.fade_in_bs(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await _screen_controller.fade_in_bs_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_ONLY_MAIN:
-			pause_execution()
-			_screen_controller.fade_out_bs(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE, Callable(self, "resume_execution"))
+			await _screen_controller.fade_out_bs_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_EVENT_COUNTER:
 			_state.flags_event_counter.set_byte(operands[0], operands[1])
@@ -113,8 +94,8 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			_screen_controller.set_background_ts_overlay(operands[3])
 		
 		Lt2Constants.SCRIPT_OPERANDS.WAIT_INPUT:
-			_delay_awaiting_touch = true
-			pause_execution()
+			await _touch_received
+			get_viewport().set_input_as_handled()
 		
 		Lt2Constants.SCRIPT_OPERANDS.SHAKE_BG:
 			_screen_controller.shake_bs(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
@@ -123,34 +104,28 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			_screen_controller.shake_ts(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.WAIT_VSYNC_OR_PEN_TOUCH:
-			_delay_awaiting_touch = true
-			_delay_time = true
-			_delay_by_time_active = operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
-			pause_execution()
+			var prom = Promise.new(Promise.PromiseMode.ANY)
+			prom.add_signal(_touch_received)
+			prom.add_signal(get_tree().create_timer(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout)
+			await prom.satisfied
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_FRAME:
-			pause_execution()
-			_screen_controller.fade_out(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_out_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.RELEASE_ITEM:
 			_state.flags_items.set_bit(operands[0], false)
 		
 		Lt2Constants.SCRIPT_OPERANDS.DRAW_FRAMES:
-			_delay_time = true
-			_delay_by_time_active = operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
-			pause_execution()
+			await get_tree().create_timer(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_FRAME_MAIN:
-			pause_execution()
-			_screen_controller.fade_out_bs(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_out_bs_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_IN_FRAME:
-			pause_execution()
-			_screen_controller.fade_in(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_in_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_IN_FRAME_MAIN:
-			pause_execution()
-			_screen_controller.fade_in_bs(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_in_bs_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FLASH_SCREEN:
 			# TODO - Timing
@@ -163,12 +138,10 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 					_state.set_gamemode_next(Lt2Constants.GAMEMODES.DRAMA_EVENT)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_FRAME_SUB:
-			pause_execution()
-			_screen_controller.fade_out_ts(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_out_ts_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_IN_FRAME_SUB:
-			pause_execution()
-			_screen_controller.fade_in_ts(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS, Callable(self, "resume_execution"))
+			await _screen_controller.fade_in_ts_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_REPEAT_AUTO_EVENT_ID:
 			_state.id_event_held_autoevent = operands[0]
@@ -190,33 +163,25 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			return false
 	return true
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
-	if not(_is_execution_paused):
-		if _idx_instruction >= _script.get_count_instruction():
-			pause_execution()
-			_do_on_finished()
-		else:
-			var last_idx = _idx_instruction
-			for idx_running in range(last_idx, _script.get_count_instruction()):
-				if not(_execute_instruction(_script.get_opcode(idx_running), _script.get_operands(idx_running))):
-					_debug_key = Lt2Constants.SCRIPT_OPERANDS.find_key(_script.get_opcode(idx_running))
+	
+	# Instruction processing is async, only permit one _process to run at once
+	if _working:
+		_working = false
+		
+		if not(_is_execution_done):
+			for idx_instruction in range(_script.get_count_instruction()):
+				var known = await _execute_instruction(_script.get_opcode(idx_instruction), _script.get_operands(idx_instruction))
+				if not(known):
+					var _debug_key = Lt2Constants.SCRIPT_OPERANDS.find_key(_script.get_opcode(idx_instruction))
 					if _debug_key != null:
-						print("Unimplemented ", _debug_key, " ", _script.get_operands(idx_running))
+						print("Unimplemented ", _debug_key, " ", _script.get_operands(idx_instruction))
 					else:
-						print("Unrecognised ", _script.get_opcode(idx_running), " ", _script.get_operands(idx_running))
-					
-				_idx_instruction += 1
-				if _is_execution_paused:
+						print("Unrecognised ", _script.get_opcode(idx_instruction), " ", _script.get_operands(idx_instruction))
+				
+				if (_is_execution_done):
 					break
-	else:
-		if _delay_by_time_active:
-			if _delay_time > 0:
-				_delay_time -= _delta
 			
-			if _delay_time <= 0:
-				resume_execution()
+			_is_execution_done = true
+			_do_on_finished()

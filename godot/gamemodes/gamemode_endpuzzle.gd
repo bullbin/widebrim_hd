@@ -38,5 +38,5 @@ func _terminate():
 	if obj_state.id_event >= EVENT_LIMIT_PUZZLE:
 		obj_state.id_event = _id_base_event
 	obj_state.set_gamemode(obj_state.get_gamemode_next())
-	node_screen_controller.fade_out(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE,
-									Callable(self, "_do_on_complete"))
+	await node_screen_controller.fade_out_async()
+	_do_on_complete()
