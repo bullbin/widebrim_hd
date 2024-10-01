@@ -373,9 +373,8 @@ func _load_room_data():
 		
 		idx_spawner += 1
 	
-	var entry_snd_fix = obj_state.dlz_snd_fix.find_entry(_place_data.id_sound)
-	if entry_snd_fix != null:
-		SoundController.play_bgm(entry_snd_fix.id_bgm)
+	SoundController.load_environment(obj_state.dlz_snd_fix, _place_data.id_sound, true)
+	SoundController.play_env(100)
 	
 	await node_screen_controller.fade_in_async()
 	node_screen_controller.input_enable()

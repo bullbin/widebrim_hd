@@ -63,17 +63,16 @@ func _ready():
 		_characters[idx_char].set_visibility(_data.characters_visibility[idx_char])
 		_characters[idx_char].set_char_position(_data.characters_slot[idx_char])
 	
-	# LoadEvent
+	# REF - LoadEvent
 	screen_controller.set_background_bs("map/main%d.bgx" % _data.map_id_bs)
 	screen_controller.set_background_ts("event/sub%d.bgx" % _data.map_id_ts)
 	# TODO - Nullify held event ID
 	if _data.custom_sound_set != 2 and _data.intro_mode != 3:
 		# Load BGM from ID
-		var entry_snd_fix = state.dlz_snd_fix.find_entry(ev_inf_id_sound)
-		if entry_snd_fix != null:
-			SoundController.play_bgm(entry_snd_fix.id_bgm)
+		SoundController.load_environment(state.dlz_snd_fix, ev_inf_id_sound, true)
 	else:
 		# TODO - Unknown mode, potentially queue BGM but do not play yet
+		SoundController.load_environment(state.dlz_snd_fix, ev_inf_id_sound, false)
 		if _data.intro_mode == 3:
 			SoundController.stop_bgm()
 		else:
@@ -140,6 +139,12 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			
 			Lt2Constants.SCRIPT_OPERANDS.PLAY_STREAM:
 				SoundController.play_sfx(Lt2Utils.get_sample_audio_from_sfx_id(operands[0]))
+			
+			Lt2Constants.SCRIPT_OPERANDS.ENV_STOP:
+				SoundController.stop_env()
+			
+			Lt2Constants.SCRIPT_OPERANDS.ENV_PLAY:
+				SoundController.play_env(operands[0])
 			
 			# TODO - Research this, not enough known about audio subsystem
 			Lt2Constants.SCRIPT_OPERANDS.FADE_IN_BGM:
