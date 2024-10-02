@@ -104,10 +104,14 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			_screen_controller.shake_ts(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)
 		
 		Lt2Constants.SCRIPT_OPERANDS.WAIT_VSYNC_OR_PEN_TOUCH:
-			var prom = Promise.new(Promise.PromiseMode.ANY)
+			var prom := Promise.new(Promise.PromiseMode.ANY)
 			prom.add_signal(_touch_received)
 			prom.add_signal(get_tree().create_timer(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout)
 			await prom.satisfied
+		
+		Lt2Constants.SCRIPT_OPERANDS.ADD_MEMO:
+			_state.memo_state.unlock_bit(operands[0] - 1)
+			_state.flags_menu_new.set_bit(0, true)
 		
 		Lt2Constants.SCRIPT_OPERANDS.FADE_OUT_FRAME:
 			await _screen_controller.fade_out_async(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS)

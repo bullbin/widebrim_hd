@@ -1,18 +1,21 @@
 extends Node
 
-@onready var _node_audio_bgm : AudioStreamPlayer = AudioStreamPlayer.new()
-var _bgm_queued_id			: int 				= -1
-@onready var _bgm_active_tween		: Tween = create_tween()
+@onready var _node_audio_bgm 	: AudioStreamPlayer = AudioStreamPlayer.new()
+@onready var _node_audio_sfx 	: AudioStreamPlayer = AudioStreamPlayer.new()
+@onready var _node_audio_voice 	: AudioStreamPlayer = AudioStreamPlayer.new()
 
-@onready var _node_audio_sfx 		: AudioStreamPlayer = AudioStreamPlayer.new()
-
-@onready var _node_audio_voice 		: AudioStreamPlayer = AudioStreamPlayer.new()
-var _callback_voice 				: Callable = Callable()
-var _callback_voice_done 			: bool = true
+var _callback_voice 			: Callable = Callable()
+var _callback_voice_done 		: bool = true
 
 # TODO - Not accurate!
 @onready var _node_audio_env_si : AudioStreamPlayer = AudioStreamPlayer.new()
 @onready var _node_audio_env_ge : AudioStreamPlayer = AudioStreamPlayer.new()
+
+@onready var _bgm_active_tween	: Tween = create_tween()
+
+var _bgm_queued_id			: int 				= -1
+var _si_queued_id			: int 				= -1
+var _ge_queued_id			: int 				= -1
 
 var _bgm_loopmap_dict 	= {}
 var _ge_loopmap_dict = {}
@@ -170,13 +173,14 @@ func stop_env():
 	_node_audio_env_si.stop()
 
 # REF - 2_Sound_LoadSoundSet
-# TODO - Do not unload sounds if they're going to be played again (avoid reload blip)
 func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : bool):
 	# Each area is assigned an 'environment' of sound. These are stored in the Sound Set DLZ
 	# I don't entirely understand what this is doing (it seems to rely on files being missing
 	#     to work correctly and the addressing is strange). Some of the magic appears to be
 	#     dependent on how Criware/Procyon is packaging the files - they can have an ID and sub-ID
 	#     and sound effects usually not permitted by ID range can be detected by sub-ID.
+	
+	# TODO - Clean up syntax by just overriding entry_ev -1 entries to current stored IDs
 	
 	var entry_env = dlzSoundSet.find_entry(id_env)
 	if entry_env == null:
@@ -187,7 +191,10 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 	var audio_temp : AudioStream = null
 	print("Env ", id_env, " BGM", entry_env.id_bgm, " GE", entry_env.id_sfx_ge, " SI", entry_env.id_sfx_si)
 	
-	if entry_env.id_sfx_si != -1:
+	if _node_audio_env_si.playing:
+		_node_audio_env_si.stop()
+		
+	if entry_env.id_sfx_si != -1 and entry_env.id_sfx_si != _si_queued_id:
 		# HACK - not accurate
 		if entry_env.id_sfx_si < 200:
 			target_path = "sound/si/231_%03d.ogg" % entry_env.id_sfx_si	# 230 also has extra IDs...
@@ -197,9 +204,7 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 		name_file = target_path.split("/")[-1]
 		target_path = Lt2Utils.get_asset_path(target_path)
 		
-		if _node_audio_env_si.playing:
-			_node_audio_env_si.stop()
-
+		_node_audio_env_si.stream = null
 		if ResourceLoader.exists(target_path):
 			audio_temp = load(target_path)
 			if audio_temp != null:
@@ -210,7 +215,10 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 				_node_audio_env_si.stream = audio_temp
 				# NOTE - Playing this seems wrong, often it's door opening noises which we don't want
 
-	if entry_env.id_sfx_ge != -1:
+	if (_node_audio_env_ge.playing and entry_env.id_sfx_ge != -1 and _ge_queued_id != entry_env.id_sfx_ge) or not(immediate_bgm):
+		_node_audio_env_ge.stop()
+		
+	if entry_env.id_sfx_ge != -1 and entry_env.id_sfx_ge != _ge_queued_id:
 		# HACK - not accurate
 		if entry_env.id_sfx_ge < 100:
 			target_path = "sound/ge/100_%03d.ogg" % entry_env.id_sfx_ge
@@ -219,10 +227,8 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 			
 		name_file = target_path.split("/")[-1]
 		target_path = Lt2Utils.get_asset_path(target_path)
-		
-		if _node_audio_env_ge.playing:
-			_node_audio_env_ge.stop()
 
+		_node_audio_env_ge.stream = null
 		if ResourceLoader.exists(target_path):
 			audio_temp = load(target_path)
 			if audio_temp != null:
@@ -231,9 +237,15 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 					audio_temp.loop_offset = _ge_loopmap_dict[name_file]
 					
 				_node_audio_env_ge.stream = audio_temp
-				if immediate_bgm: 
-					_node_audio_env_ge.play()
+	
+	if entry_env.id_sfx_si != -1:
+		_si_queued_id = entry_env.id_sfx_si
+	if entry_env.id_sfx_ge != -1:
+		_ge_queued_id = entry_env.id_sfx_ge
 	
 	if immediate_bgm:
 		# TODO - Check if BGM stops before this
-		play_bgm(entry_env.id_bgm)
+		if not(_node_audio_env_ge.playing):
+			_node_audio_env_ge.play()
+		if entry_env.id_bgm != -1:
+			play_bgm(entry_env.id_bgm)

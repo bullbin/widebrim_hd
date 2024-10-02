@@ -83,14 +83,18 @@ class PlusNewBitField:
 		_new = AddressableBitField.new(length_bytes)
 	
 	func unlock_bit(idx : int):
-		_unlocked.set_bit(idx, true)
-		_new.set_bit(idx, true)
+		if not(_unlocked.get_bit(idx)):
+			_unlocked.set_bit(idx, true)
+			_new.set_bit(idx, true)
 	
 	func is_unlocked(idx : int) -> bool:
 		return _unlocked.get_bit(idx)
 	
 	func is_new(idx : int) -> bool:
 		return _new.get_bit(idx)
+	
+	func remove_new(idx : int):
+		_new.set_bit(idx, false)
 	
 	func read_contents(file : FileAccess):
 		_unlocked.read_contents(file)
@@ -141,6 +145,7 @@ class FukamaruState:
 	func solve(idx : int):
 		unlock_bit(idx)
 		_solved.set_bit(idx, true)
+		# TODO - Maybe new here too
 	
 	func is_solved(idx : int) -> bool:
 		return _solved.get_bit(idx)
