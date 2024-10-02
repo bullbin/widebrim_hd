@@ -4,7 +4,7 @@ signal completed
 
 const PATH_TALKSCRIPT 	: String = "event/t%d_%03d_%d.txt"
 const PATH_NAMETAG		: String = "eventchr/chr%d_n.spr"
-const TIME_BETWEEN_TICK	: float = 0.1
+const TIME_BETWEEN_TICK	: float  = (1.0/15)
 
 @onready var _node_window = Lt2GodotAnimation.new("event/twindow.spr", get_node("CanvasGroup"))
 @onready var _node_reward = Lt2GodotAnimation.new("event/mokuteki_w.spr", get_node("CanvasGroup"))
@@ -33,7 +33,9 @@ var _pitch			: int		= -1
 var _target_voice	: int		= -1
 var _idx_voice		: int 		= -1
 var _in_mode_dial	: bool		= true
+var _held_sfx		: int		= -1
 
+var _tick_audio_id	: int = -1
 var _tick_audio		: AudioStream = null
 
 const POS_TO_ANIM = {0:"LEFT",
@@ -79,7 +81,7 @@ func _position_text_reward():
 
 func play_voiceline():
 	if _target_voice != -1 and _idx_voice != -1:
-		SoundController.play_voiceline(_target_voice, _idx_voice, Callable())
+		SoundController.play_voiceline(_target_voice, _idx_voice)
 		# print("TODO: Voiceline %03d_%d" % [_target_voice, _idx_voice])
 
 func stop_active_voiceline():
@@ -184,6 +186,7 @@ func load_talkscript(id : int):
 			_:
 				id_sfx = 0x29
 		
+		_tick_audio_id = id_sfx
 		_tick_audio = Lt2Utils.get_synth_audio_from_sfx_id(id_sfx)
 
 func get_next_token() -> String:
@@ -199,7 +202,7 @@ func get_next_token() -> String:
 		"@":
 			if remaining > 1:
 				match _text_complete[_idx_char].to_lower():
-					"p", "w", "c":
+					"p", "w", "c", "s":
 						_idx_char += 1
 						return output + _text_complete[_idx_char - 1]
 					"v":
@@ -236,6 +239,10 @@ func apply_token_command(token : String) -> bool:
 	match token[0]:
 		"@":
 			match token[1].to_lower():
+				"s":
+					# TODO - Appears to wait 6 frames, etc
+					if _held_sfx > 0:
+						SoundController.play_sample_sfx(_held_sfx)
 				"p":
 					_awaiting_input = true
 					if _target_char != null:
@@ -275,6 +282,10 @@ func _enter_end_state_if_done():
 		_awaiting_input = true
 		_completed = true
 
+func attach_sfx(id : int, unk_0 : float, unk_1 : float):
+	# TODO - Support unknowns
+	_held_sfx = id
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if _idx_char < len(_text_complete):
@@ -294,7 +305,7 @@ func _process(delta):
 						_time_visible -= Lt2Constants.TIMING_LT2_TO_MILLISECONDS
 						if _time_bet_tick >= TIME_BETWEEN_TICK:
 							if _target_voice == -1 or _idx_voice == -1:
-								SoundController.play_sfx(_tick_audio)
+								SoundController.play_preresolved_synth_sfx(_tick_audio_id, _tick_audio, true)
 							_time_bet_tick -= TIME_BETWEEN_TICK
 				
 				# Done!

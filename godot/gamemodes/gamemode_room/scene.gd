@@ -190,10 +190,10 @@ func _trigger_explamation(id_event : int):
 	# TODO - Support herbtea
 	if is_exclamation:
 		# TODO - Graphics, idx_anim = 3
-		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x72))
+		SoundController.play_synth_sfx(0x72)
 	else:
 		# TODO - Graphics, idx_anim = 2
-		SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
+		SoundController.play_synth_sfx(0x73)
 
 func _do_on_exit_start(idx : int):
 	node_screen_controller.input_disable()
@@ -203,7 +203,7 @@ func _do_on_exit_start(idx : int):
 		if exit.does_spawn_exclamation():
 			_trigger_explamation(exit.destination)
 		else:
-			SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x73))
+			SoundController.play_synth_sfx(0x73)
 		print("EXIT EVENT ", exit.destination)
 		# TODO - Do explamation effect
 		_set_event(exit.destination)
@@ -212,13 +212,13 @@ func _do_on_exit_start(idx : int):
 		obj_state._id_room = exit.destination
 		match exit.id_sound:
 			0:
-				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe6))
+				SoundController.play_synth_sfx(0xe6)
 			1:
-				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe7))
+				SoundController.play_synth_sfx(0xe7)
 			3:
-				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xeb))
+				SoundController.play_synth_sfx(0xeb)
 			4:
-				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0xe9))
+				SoundController.play_synth_sfx(0xe9)
 			_:
 				pass
 		
@@ -239,7 +239,7 @@ func _do_on_hint_start(idx : int):
 	
 	_idx_last_hint_triggered = idx
 	_node_hintcoin.do_hint_coin_position(_place_data.hint_coins[idx].bounding.position + _place_data.hint_coins[idx].bounding.size / 2)
-	SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(0x74))
+	SoundController.play_synth_sfx(0x74)
 	
 	await _node_hintcoin.on_hint_coin_anim_finished
 
@@ -290,6 +290,13 @@ func _load_room_data():
 	else:
 		_text_place.text = ""
 	
+	var entry_sb_pht = obj_state.dlz_sb_pht.find_entry_by_place(obj_state.get_id_room())
+	if entry_sb_pht == null:
+		flag_photo_piece_in_loaded_area = false
+		flag_photo_piece_taken = false
+	else:
+		flag_photo_piece_in_loaded_area = true
+		
 	# obj_state.db_
 	
 	

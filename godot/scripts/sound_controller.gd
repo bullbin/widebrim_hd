@@ -1,82 +1,113 @@
 extends Node
 
-@onready var _node_audio_bgm 	: AudioStreamPlayer = AudioStreamPlayer.new()
-@onready var _node_audio_sfx 	: AudioStreamPlayer = AudioStreamPlayer.new()
-@onready var _node_audio_voice 	: AudioStreamPlayer = AudioStreamPlayer.new()
+class CriChannel:
+	extends Node2D
+	
+	var active_id := -1
+	var player := AudioStreamPlayer.new()
+	var vol_tween : Tween = create_tween()
+	var loopmap := {}
+	var path_base := ""
+	var base_name := ""
+	var base_name_alt := ""
+	
+	func _init(template_base : String, template_name : String, template_name_alt : String):
+		player.finished.connect(self.kill_tween)
+		path_base = template_base
+		base_name = template_name
+		base_name_alt = template_name_alt
+		load_loopmap_dict(path_base % "metadata.csv")
+	
+	func _ready() -> void:
+		add_child(player)
+	
+	func kill_tween():
+		vol_tween.kill()
+	
+	func load_loopmap_dict(path_dict):
+		var file = FileAccess.open(Lt2Utils.get_asset_path(path_dict), FileAccess.READ)
+		if file != null:
+			while not file.eof_reached():
+				var line = file.get_csv_line()
+				if len(line) != 2:
+					continue
+				if not(line[1].is_valid_float()):
+					continue
+				loopmap[line[0]] = float(line[1])
+			
+			file.close()
+	
+	func fade_volume(target_vol : float, duration : float):
+		kill_tween()
+	
+		# TODO - Global mixing for channel volumes
+		target_vol = (1 - clamp(target_vol, 0, 1)) * -60
+		vol_tween = create_tween()
+		vol_tween.tween_property(player, "volume_db", target_vol, duration)
+	
+	func _get_path_from_id(id : int) -> String:
+		if base_name_alt != "":
+			if ResourceLoader.exists(Lt2Utils.get_asset_path(path_base % (base_name_alt % id))):
+				return base_name_alt % id
+		return base_name % id
+	
+	func replay(start_now : bool):
+		play(active_id, start_now)
+	
+	func play(id : int, start_now : bool, allow_overlap : bool = false):
+		var path_audio := _get_path_from_id(id)
+		path_audio = path_base % path_audio
+		play_preresolved(id, load(Lt2Utils.get_asset_path(path_audio)), start_now, allow_overlap) 
+	
+	func play_preresolved(id : int, audio : AudioStream, start_now : bool, allow_overlap : bool = false):
+		kill_tween()
+		
+		# If already loaded, play the track if paused and stop
+		if id == active_id:
+			if start_now:
+				if not(player.playing) or allow_overlap:
+					player.play()
+			else:
+				player.stop()
+			player.volume_db = 0
+			return
+		else:
+			player.stop()
+		
+		# Else, load the next track
+		player.volume_db = 0
+		active_id = id
+		var path_audio := _get_path_from_id(id)
+		var loop_base := 0.0
+		var loop := false
+		
+		if path_audio in loopmap:
+			loop_base = loopmap[path_audio]
+			loop = true
+		
+		player.stream = audio
+		player.stream.loop = loop
+		player.stream.loop_offset = loop_base
+		
+		if start_now:
+			player.play()
 
-var _callback_voice 			: Callable = Callable()
-var _callback_voice_done 		: bool = true
-
-# TODO - Not accurate!
-@onready var _node_audio_env_si : AudioStreamPlayer = AudioStreamPlayer.new()
-@onready var _node_audio_env_ge : AudioStreamPlayer = AudioStreamPlayer.new()
-
-@onready var _bgm_active_tween	: Tween = create_tween()
-
-var _bgm_queued_id			: int 				= -1
-var _si_queued_id			: int 				= -1
-var _ge_queued_id			: int 				= -1
-
-var _bgm_loopmap_dict 	= {}
-var _ge_loopmap_dict = {}
-var _si_loopmap_dict = {}
-
-signal on_sfx_done
-signal on_voice_done
+@onready var _node_audio_bgm 	:= CriChannel.new("sound/bgm/%s", "BG_%03d.ogg", "")
+@onready var _node_audio_si 	:= CriChannel.new("sound/si/%s", "%03d.ogg", "231_%03d.ogg")
+@onready var _node_audio_ge 	:= CriChannel.new("sound/ge/%s", "%03d.ogg", "100_%03d.ogg")
+@onready var _node_audio_sy 	:= CriChannel.new("sound/sy/%s", "%03d.ogg", "")
+@onready var _node_audio_sample := AudioStreamPlayer.new()
 
 # TODO - 2_Sound_SE_Play_Preresolved_ID
 # Game splits into channels per voice bank, not like this
 #     Doesn't explain how ENV works though
 
 func _ready():
-	_node_audio_bgm.finished.connect(stop_bgm)
-	_node_audio_voice.finished.connect(stop_voiceline)
-	_node_audio_sfx.finished.connect(Callable(on_sfx_done.emit))
-	
 	add_child(_node_audio_bgm)
-	add_child(_node_audio_sfx)
-	add_child(_node_audio_voice)
-	add_child(_node_audio_env_si)
-	add_child(_node_audio_env_ge)
-	
-	var file = FileAccess.open(Lt2Utils.get_asset_path("sound/bgm/metadata.csv"), FileAccess.READ)
-	if file != null:
-		while not file.eof_reached():
-			var line = file.get_csv_line()
-			if len(line) != 2:
-				continue
-			if not(line[1].is_valid_float()):
-				continue
-			_bgm_loopmap_dict[line[0]] = float(line[1])
-		
-		file.close()
-	
-	file = FileAccess.open(Lt2Utils.get_asset_path("sound/ge/metadata.csv"), FileAccess.READ)
-	if file != null:
-		while not file.eof_reached():
-			var line = file.get_csv_line()
-			if len(line) != 2:
-				continue
-			if not(line[1].is_valid_float()):
-				continue
-			_ge_loopmap_dict[line[0]] = float(line[1])
-		
-		file.close()
-	
-	file = FileAccess.open(Lt2Utils.get_asset_path("sound/si/metadata.csv"), FileAccess.READ)
-	if file != null:
-		while not file.eof_reached():
-			var line = file.get_csv_line()
-			if len(line) != 2:
-				continue
-			if not(line[1].is_valid_float()):
-				continue
-			_si_loopmap_dict[line[0]] = float(line[1])
-		
-		file.close()
-
-func _kill_tween():
-	_bgm_active_tween.kill()
+	add_child(_node_audio_si)
+	add_child(_node_audio_ge)
+	add_child(_node_audio_sy)
+	add_child(_node_audio_sample)
 
 func play_bgm(id : int):
 	# This is not accurate but the audio sections for both LAYTON2DS and LAYTON2HD
@@ -84,34 +115,10 @@ func play_bgm(id : int):
 	#     or do call fixups for everything
 	
 	# TODO - Check audio behaviour
-	_kill_tween()
-	_node_audio_bgm.volume_db = 0
-		
-	if id == _bgm_queued_id:
-		return
-	
-	_bgm_queued_id = id
-	var id_base 	: String = "BG_%03d.ogg" % id
-	var loop_base 	: float = 0
-	
-	if id_base in _bgm_loopmap_dict:
-		loop_base = _bgm_loopmap_dict[id_base]
-	
-	id_base = Lt2Utils.get_asset_path("sound/bgm/%s" % id_base)
-	if not(ResourceLoader.exists(id_base)):
-		print("Audio: BGM failed loading, targetted resource %s" % id_base)
-		_node_audio_bgm.stop()
-		return
-	
-	var audio : AudioStreamOggVorbis = load(id_base)
-	audio.loop = true
-	audio.loop_offset = loop_base
-	_node_audio_bgm.stream = audio
-	_node_audio_bgm.play()
+	_node_audio_bgm.play(id, true)
 
 func stop_bgm():
 	# TODO - Not validated, just want to suppress
-	_kill_tween()
 	_node_audio_bgm.stop()
 
 func fade_bgm(target_vol : float):
@@ -122,55 +129,51 @@ func play_bgm_2():
 	print("Sound: Unimplemented Play BGM 2")
 
 func fade_bgm_2(target_vol : float, duration : float):
-	# TODO - Set quadratic falloff instead of linear
-	_kill_tween()
-	
-	# TODO - Global mixing for channel volumes
-	target_vol = (1 - clamp(target_vol, 0, 1)) * -60
-	_bgm_active_tween = create_tween()
-	_bgm_active_tween.tween_property(_node_audio_bgm, "volume_db", target_vol, duration)
+	_node_audio_bgm.fade_volume(target_vol, duration)
 
-func play_sfx(audio : AudioStream) -> bool:
-	if _node_audio_sfx.playing:
-		_node_audio_sfx.stop()
-		_node_audio_sfx.finished.emit()
+func play_sample_sfx(id : int):
+	_node_audio_sample.stop()
+	_node_audio_sample.stream = Lt2Utils.get_sample_audio_from_sfx_id(id)
+	_node_audio_sample.play()
 
-	if audio != null:
-		audio.loop = false
-		_node_audio_sfx.stream = audio
-		_node_audio_sfx.play()
-	return audio != null
+func play_preresolved_synth_sfx(id : int, audio : AudioStream, allow_overlap : bool = false):
+	if id >= 200:
+		_node_audio_si.play_preresolved(id, audio, true, allow_overlap)
+	elif id >= 50:
+		_node_audio_ge.play_preresolved(id, audio, true, allow_overlap)
+	else:
+		_node_audio_sy.play_preresolved(id, audio, true, allow_overlap)
 
-func play_voiceline(id_root : int, id_sub : int, callback : Callable = Callable()):
-	var stream = load(Lt2Utils.get_asset_path("sound/%03d_%d.ogg" % [id_root, id_sub]))
+func play_synth_sfx(id : int, allow_overlap : bool = false):
+	# TODO - Not strictly correct, this doesn't handle edge cases
+	# Some IDs are multipart, the SDK can also have 4len IDs but this isn't used
+	if id >= 200:
+		_node_audio_si.play(id, true, allow_overlap)
+	elif id >= 50:
+		_node_audio_ge.play(id, true, allow_overlap)
+	else:
+		_node_audio_sy.play(id, true, allow_overlap)
 
-	if _node_audio_voice.playing:
-		_node_audio_voice.stop()
-	
-	_callback_voice = callback
-	_callback_voice_done = false
-	_node_audio_voice.stream = stream
-	_node_audio_voice.play()
+func play_voiceline(id_root : int, id_sub : int):
+	_node_audio_sample.stop()
+	_node_audio_sample.stream = load(Lt2Utils.get_asset_path("sound/%03d_%d.ogg" % [id_root, id_sub]))
+	_node_audio_sample.play()
 
 func stop_voiceline():
-	on_voice_done.emit()
-	if not(_callback_voice_done):
-		if not(_callback_voice.is_null()):
-			_callback_voice.call()
-		_callback_voice_done = true
+	_node_audio_sample.stop()
 
 func play_env(id : int):
 	# Uses ID to find channel to resume!
 	if id >= 200:
 		# SI
-		_node_audio_env_si.play()
+		_node_audio_si.player.play()
 	elif id >= 50:
 		# GE
-		_node_audio_env_ge.play()
+		_node_audio_ge.player.play()
 	
 func stop_env():
-	_node_audio_env_ge.stop()
-	_node_audio_env_si.stop()
+	_node_audio_ge.player.stop()
+	_node_audio_si.player.stop()
 
 # REF - 2_Sound_LoadSoundSet
 func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : bool):
@@ -185,67 +188,20 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 	var entry_env = dlzSoundSet.find_entry(id_env)
 	if entry_env == null:
 		return
-	
-	var target_path = ""
-	var name_file = ""
-	var audio_temp : AudioStream = null
+
 	print("Env ", id_env, " BGM", entry_env.id_bgm, " GE", entry_env.id_sfx_ge, " SI", entry_env.id_sfx_si)
 	
-	if _node_audio_env_si.playing:
-		_node_audio_env_si.stop()
-		
-	if entry_env.id_sfx_si != -1 and entry_env.id_sfx_si != _si_queued_id:
-		# HACK - not accurate
-		if entry_env.id_sfx_si < 200:
-			target_path = "sound/si/231_%03d.ogg" % entry_env.id_sfx_si	# 230 also has extra IDs...
-		else:
-			target_path = "sound/si/%03d.ogg" % entry_env.id_sfx_si
-		
-		name_file = target_path.split("/")[-1]
-		target_path = Lt2Utils.get_asset_path(target_path)
-		
-		_node_audio_env_si.stream = null
-		if ResourceLoader.exists(target_path):
-			audio_temp = load(target_path)
-			if audio_temp != null:
-				if name_file in _si_loopmap_dict:
-					audio_temp.loop = true
-					audio_temp.loop_offset = _si_loopmap_dict[name_file]
-					
-				_node_audio_env_si.stream = audio_temp
-				# NOTE - Playing this seems wrong, often it's door opening noises which we don't want
+	if entry_env.id_sfx_si == -1:
+		_node_audio_si.replay(false)
+	else:
+		_node_audio_si.play(entry_env.id_sfx_si, false)
 
-	if (_node_audio_env_ge.playing and entry_env.id_sfx_ge != -1 and _ge_queued_id != entry_env.id_sfx_ge) or not(immediate_bgm):
-		_node_audio_env_ge.stop()
-		
-	if entry_env.id_sfx_ge != -1 and entry_env.id_sfx_ge != _ge_queued_id:
-		# HACK - not accurate
-		if entry_env.id_sfx_ge < 100:
-			target_path = "sound/ge/100_%03d.ogg" % entry_env.id_sfx_ge
-		else:
-			target_path = "sound/ge/%03d.ogg" % entry_env.id_sfx_ge
-			
-		name_file = target_path.split("/")[-1]
-		target_path = Lt2Utils.get_asset_path(target_path)
-
-		_node_audio_env_ge.stream = null
-		if ResourceLoader.exists(target_path):
-			audio_temp = load(target_path)
-			if audio_temp != null:
-				if name_file in _ge_loopmap_dict:
-					audio_temp.loop = true
-					audio_temp.loop_offset = _ge_loopmap_dict[name_file]
-					
-				_node_audio_env_ge.stream = audio_temp
+	if entry_env.id_sfx_ge == -1:
+		_node_audio_ge.replay(immediate_bgm)
+	else:
+		_node_audio_ge.play(entry_env.id_sfx_ge, immediate_bgm)
 	
-	if entry_env.id_sfx_si != -1:
-		_si_queued_id = entry_env.id_sfx_si
-	if entry_env.id_sfx_ge != -1:
-		_ge_queued_id = entry_env.id_sfx_ge
-	
-	if immediate_bgm:
-		# TODO - Check if BGM stops before this
-		if not(_node_audio_env_ge.playing):
-			_node_audio_env_ge.play()
-		if entry_env.id_bgm != -1:
-			play_bgm(entry_env.id_bgm)
+	if entry_env.id_bgm == -1:
+		_node_audio_bgm.replay(immediate_bgm)
+	else:
+		_node_audio_bgm.play(entry_env.id_bgm, immediate_bgm)

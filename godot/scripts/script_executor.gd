@@ -135,10 +135,21 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 					await get_tree().create_timer(entry.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout
 			
 			Lt2Constants.SCRIPT_OPERANDS.PLAY_SOUND:
-				SoundController.play_sfx(Lt2Utils.get_synth_audio_from_sfx_id(operands[0]))
+				SoundController.play_synth_sfx(operands[0])
 			
 			Lt2Constants.SCRIPT_OPERANDS.PLAY_STREAM:
-				SoundController.play_sfx(Lt2Utils.get_sample_audio_from_sfx_id(operands[0]))
+				# TODO - Unk0, Unk1
+				SoundController.play_sample_sfx(operands[0])
+			
+			Lt2Constants.SCRIPT_OPERANDS.PLAY_STREAM2:
+				match operands[3]:
+					0:
+						SoundController.play_sample_sfx(operands[0])
+					1:
+						# TODO - Check performed here, seems to scan mode? Channel? Might check for conflict
+						SoundController.play_sample_sfx(operands[0])
+					_:
+						_node_twindow.attach_sfx(operands[0], operands[1], operands[2])
 			
 			Lt2Constants.SCRIPT_OPERANDS.ENV_STOP:
 				SoundController.stop_env()
