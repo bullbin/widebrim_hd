@@ -185,6 +185,8 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 	var target_path = ""
 	var name_file = ""
 	var audio_temp : AudioStream = null
+	print("Env ", id_env, " BGM", entry_env.id_bgm, " GE", entry_env.id_sfx_ge, " SI", entry_env.id_sfx_si)
+	
 	if entry_env.id_sfx_si != -1:
 		# HACK - not accurate
 		if entry_env.id_sfx_si < 200:
@@ -200,15 +202,14 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 
 		if ResourceLoader.exists(target_path):
 			audio_temp = load(target_path)
-		
-		if audio_temp != null:
-			if name_file in _si_loopmap_dict:
-				audio_temp.loop = true
-				audio_temp.loop_offset = _si_loopmap_dict[name_file]
-				
-			_node_audio_env_si.stream = audio_temp
-			# NOTE - Playing this seems wrong, often it's door opening noises which we don't want
-		
+			if audio_temp != null:
+				if name_file in _si_loopmap_dict:
+					audio_temp.loop = true
+					audio_temp.loop_offset = _si_loopmap_dict[name_file]
+					
+				_node_audio_env_si.stream = audio_temp
+				# NOTE - Playing this seems wrong, often it's door opening noises which we don't want
+
 	if entry_env.id_sfx_ge != -1:
 		# HACK - not accurate
 		if entry_env.id_sfx_ge < 100:
@@ -224,15 +225,14 @@ func load_environment(dlzSoundSet : DlzSoundSet, id_env : int, immediate_bgm : b
 
 		if ResourceLoader.exists(target_path):
 			audio_temp = load(target_path)
-		
-		if audio_temp != null:
-			if name_file in _ge_loopmap_dict:
-				audio_temp.loop = true
-				audio_temp.loop_offset = _ge_loopmap_dict[name_file]
-				
-			_node_audio_env_ge.stream = audio_temp
-			if immediate_bgm: 
-				_node_audio_env_ge.play()
+			if audio_temp != null:
+				if name_file in _ge_loopmap_dict:
+					audio_temp.loop = true
+					audio_temp.loop_offset = _ge_loopmap_dict[name_file]
+					
+				_node_audio_env_ge.stream = audio_temp
+				if immediate_bgm: 
+					_node_audio_env_ge.play()
 	
 	if immediate_bgm:
 		# TODO - Check if BGM stops before this

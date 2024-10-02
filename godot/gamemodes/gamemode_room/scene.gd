@@ -1,6 +1,5 @@
 extends Lt2GamemodeBaseClass
 
-var _is_interactable : bool = false
 var _place_data : Lt2AssetPlaceData = null
 
 const PATH_DATA_PLACE : String = "place/data/n_place%d_%d.dat"
@@ -10,7 +9,11 @@ const PATH_DATA_PLACE : String = "place/data/n_place%d_%d.dat"
 var _node_bg_ani 		: Array[Lt2GodotAnimation] = []
 var _node_event_spawner : Array[Lt2GodotAnimation] = []
 var _node_exit			: Array[Lt2GodotAnimatedButton] = []
-var _node_hint			: Dictionary = {}
+
+# TODO - Can be simplified if using a new node on anim_root and disabling input on it
+var _node_zone_tobj				: Array[ActivatableRect] = []
+var _node_zone_event_spawner 	: Array[ActivatableRect] = []
+var _node_hint					: Dictionary = {}
 
 @onready var _text_place 		: Label = get_node("hud_ts/map_place/text_place")
 @onready var _text_objective 	: Label = get_node("hud_ts/map_purpose/text_purpose")
@@ -101,6 +104,11 @@ func _do_on_movemode_end():
 	
 	for key in _node_hint.keys():
 		_node_hint[key].set_process_unhandled_input(true)
+	
+	for zone in _node_zone_tobj:
+		zone.enable()
+	for zone in _node_zone_event_spawner:
+		zone.enable()
 		
 	_btn_movemode.enable()
 	_btn_movemode.show()
@@ -121,6 +129,11 @@ func _do_on_movemode_start():
 	# TODO - Click animation hidden, maybe modify btn code to ensure frame
 	for key in _node_hint.keys():
 		_node_hint[key].set_process_unhandled_input(false)
+	
+	for zone in _node_zone_tobj:
+		zone.disable()
+	for zone in _node_zone_event_spawner:
+		zone.disable()
 		
 	_btn_movemode.hide()
 	
@@ -163,7 +176,6 @@ func _do_on_event_start(idx : int):
 	
 	await _on_done()
 	
-
 func _trigger_explamation(id_event : int):
 	# REF - DoExclamation, cut functionality from 7_lt2RoomObject_DoExplanation
 	
@@ -233,7 +245,7 @@ func _do_on_hint_start(idx : int):
 
 	var id_room = obj_state.get_id_room()
 	if id_room == 0x5c:
-		id_room - 0x26
+		id_room = 0x26
 	
 	obj_state.room_hint_state.set_hint_state(id_room, _idx_last_hint_triggered, true)
 	node_screen_controller.input_enable()
@@ -313,6 +325,7 @@ func _load_room_data():
 		zone.size = tobj.bounding.size
 		zone.activated.connect(_tobj_controller.do_tobj_mode.bind(tobj.id_char, tobj.id_text))
 		_node_anim_root.add_child(zone)
+		_node_zone_tobj.append(zone)
 		idx_spawner += 1
 	
 	idx_spawner = 0
@@ -350,6 +363,7 @@ func _load_room_data():
 		
 		var debug_zone = ActivatableRect.new()
 		_node_anim_root.add_child(debug_zone)
+		_node_zone_event_spawner.append(debug_zone)
 		
 		debug_zone.add_visualizer(Color(0,0,1.0))
 		debug_zone.activated.connect(_do_on_event_start.bind(idx_spawner))
@@ -463,7 +477,3 @@ func _update_subroom():
 	obj_state.set_id_subroom(idx_subroom)
 	
 	print("Subroom updated, now ", idx_subroom)
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass

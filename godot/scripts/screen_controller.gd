@@ -278,6 +278,6 @@ func fade_in_ts_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_
 	if not(_fade_ts_internal(0.0, duration)):
 		await fade_top_done
 
-func fade_out_ts(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
+func fade_out_ts_async(duration : float = Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE):
 	if not(_fade_ts_internal(1.0, duration)):
 		await fade_top_done
