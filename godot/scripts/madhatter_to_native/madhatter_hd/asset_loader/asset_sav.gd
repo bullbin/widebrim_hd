@@ -74,41 +74,123 @@ class PackedRoomManager:
 		for idx_byte in range(len(_room_data)):
 			_room_data.set(idx_byte, file.get_8())
 
-var _name : String 			= "NO NAME"
-var _is_complete : bool 	= false
+class PlusNewBitField:
+	var _unlocked : AddressableBitField = null
+	var _new : AddressableBitField = null
+	
+	func _init(length_bytes : int):
+		_unlocked = AddressableBitField.new(length_bytes)
+		_new = AddressableBitField.new(length_bytes)
+	
+	func unlock_bit(idx : int):
+		_unlocked.set_bit(idx, true)
+		_new.set_bit(idx, true)
+	
+	func is_unlocked(idx : int) -> bool:
+		return _unlocked.get_bit(idx)
+	
+	func is_new(idx : int) -> bool:
+		return _new.get_bit(idx)
+	
+	func read_contents(file : FileAccess):
+		_unlocked.read_contents(file)
+		_new.read_contents(file)
+	
+	func write_contents(file : FileAccess):
+		_unlocked.write_contents(file)
+		_new.write_contents(file)
+
+class MemoState:
+	extends PlusNewBitField
+	var last_page : int = 0
+	
+	func _init():
+		super(16)
+
+class CameraState:
+	var available := AddressableBitField.new(2)
+	var pieces := AddressableBitField.new(20)
+
+class TeaState:
+	var available_elements := AddressableBitField.new(1)
+	var available_recipes := AddressableBitField.new(2)
+	var solved := AddressableBitField.new(3)
+	var stoe := AddressableBitField.new(1)	# STOE not understood yet
+
+class PhotoPieceState:
+	var interacted := AddressableBitField.new(4)
+	var taken := AddressableBitField.new(2)
+	var completed := AddressableBitField.new(2)
+	var pieces := AddressableBitField.new(2)
+
+class HamsterState:
+	var level := 0
+	var name := "NO NAME"
+	var unlocked := AddressableBitField.new(10)	# TODO - This should be list of 10 ints
+	var current_grid := AddressableBitField.new(48)	# TODO - Unideal to store like this (grid)
+	var record := AddressableBitField.new(1)	# SHMM not understood yet
+
+class FukamaruState:
+	extends PlusNewBitField
+	var _solved : AddressableBitField = null
+	
+	func _init():
+		super(2)
+		_solved = AddressableBitField.new(2)
+	
+	func solve(idx : int):
+		unlock_bit(idx)
+		_solved.set_bit(idx, true)
+	
+	func is_solved(idx : int) -> bool:
+		return _solved.get_bit(idx)
+	
+	func read_contents(file : FileAccess):
+		super(file)
+		_solved.read_contents(file)
+	
+	func write_contents(file : FileAccess):
+		super(file)
+		_solved.write_contents(file)
+
+var name 			:= "NO NAME"
+var is_complete		:= false
 
 var _puzzle_data : Array[PuzzleState] = []
 
-var flags_event_viewed 	= AddressableBitField.new(128)
-var flags_storyflag		= AddressableBitField.new(16)
-var flags_event_counter = AddressableBitField.new(128)
-var flags_items 		= AddressableBitField.new(1)
-var flags_menu_new 		= AddressableBitField.new(2)
-var flags_photo_piece 	= AddressableBitField.new(2)
-var flags_tutorial 		= AddressableBitField.new(2)
-var flags_party_member 	= AddressableBitField.new(1)
+var flags_event_viewed 	:= AddressableBitField.new(128)
+var flags_storyflag		:= AddressableBitField.new(16)
+var flags_event_counter := AddressableBitField.new(128)
+var flags_items 		:= AddressableBitField.new(1)
+var flags_menu_new 		:= AddressableBitField.new(2)
+var flags_photo_piece 	:= AddressableBitField.new(2)
+var flags_tutorial 		:= AddressableBitField.new(2)
+var flags_party_member 	:= AddressableBitField.new(1)
+var flags_code_entry	:= AddressableBitField.new(2)
 
-var room_hint_state : PackedRoomManager = PackedRoomManager.new()
+var room_hint_state 	:= PackedRoomManager.new()
+var memo_state 			:= MemoState.new()
+var camera_state 		:= CameraState.new()
+var anthony_diary_state := PlusNewBitField.new(2)
+var tea_state 			:= TeaState.new()
+var photo_piece_state 	:= PhotoPieceState.new()
+var fukamaru_state 		:= FukamaruState.new()
+var hamster_state		:= HamsterState.new()
 
-var _header_time_elapsed 				= 0
-var _header_count_puzzle_solved	 		= 0
-var _header_count_puzzle_encountered 	= 0
-var _header_idx_last_room 				= 0
+var hint_coin_encountered 	:= 10
+var hint_coin_remaining 	:= 10
 
-var hint_coin_encountered 		= 10
-var hint_coin_remaining 		= 10
+var _id_room 		:= 1
+var _id_room_sub 	:= 0
+var chapter 		:= 5
 
-var _id_room 		= 1
-var _id_room_sub 	= 0
-var _time_elapsed 	= 0
-var chapter 		= 5
+var _picarats 		:= 0
 
-var _picarats 		= 0
+var id_event_held_autoevent := -1
+var id_event_immediate		:= -1
+var id_last_jiten			:= 0
 
-var id_event_held_autoevent = -1
-var id_event_immediate		= -1
-
-var objective 		= 100
+var objective 		:= 100
 
 func _init():
 	for _idx in range(COUNT_MAX_PUZZLE):
@@ -138,6 +220,9 @@ func set_id_subroom(id : int):
 func get_id_subroom() -> int:
 	return _id_room_sub
 
+func is_camera_assembled() -> bool:
+	return false
+
 func _signed_to_unsigned(signed : int, max_depth : int) -> int:
 	var bound 	: int = 0x01 << (max_depth - 1)
 	var clamped : int = min(max(signed, -bound), bound - 1)
@@ -145,11 +230,19 @@ func _signed_to_unsigned(signed : int, max_depth : int) -> int:
 		clamped += 1 << max_depth
 	return clamped
 
+func _unsigned_to_signed(unsigned : int, max_depth : int) -> int:
+	var max_higher : int = 0x01 << max_depth
+	var max_lower : int = 0x01 << (max_depth - 1)
+	return (unsigned + max_lower) % max_higher - max_lower
+
 func _s16_as_u16(val : int) -> int:
 	return _signed_to_unsigned(val, 16)
 
 func _s32_as_u32(val : int) -> int:
 	return _signed_to_unsigned(val, 32)
+
+func _u16_as_s16(val : int) -> int:
+	return _unsigned_to_signed(val, 16)
 
 # TODO - Slot
 func write_save(path : String) -> bool:
@@ -173,13 +266,60 @@ func write_save(path : String) -> bool:
 		file.store_32(_id_room_sub)
 		
 		file.store_32(0)	# Padding
+		file.store_32(0)	# Time1
+		file.store_32(0)	# Time2
 		
-		for _idx_pad in range(60):	# Time(8),CamAvailable(2),CamPiece(20)
-			file.store_8(0)			# + Padding(30)
-		for _idx_pad in range(67):	# Tea(3),Hamster(35)
-			file.store_8(0)			# + Padding(24) + HState(1),Unk(1) + Padding(3)
+		camera_state.available.write_contents(file)
+		camera_state.pieces.write_contents(file)
+		
+		for _idx_pad in range(30):
+			file.store_8(0)
+		
+		tea_state.available_elements.write_contents(file)
+		tea_state.available_recipes.write_contents(file)
+		file.store_8(hamster_state.level)
+		hamster_state.unlocked.write_contents(file)
+		hamster_state.current_grid.write_contents(file)
+		hamster_state.record.write_contents(file)
+		tea_state.stoe.write_contents(file)
+		
+		for _idx_pad in range(3):
+			file.store_8(0)
+
+		memo_state.write_contents(file)
+		fukamaru_state.write_contents(file)
+		photo_piece_state.interacted.write_contents(file)
+		photo_piece_state.taken.write_contents(file)
+		photo_piece_state.completed.write_contents(file)
+		flags_items.write_contents(file)
+		flags_menu_new.write_contents(file)
+		tea_state.solved.write_contents(file)
+		
+		var name_buff := hamster_state.name.to_utf8_buffer() # TODO - NDS uses shift-jis
+		if name_buff.size() > 20:
+			name_buff.resize(20)
+		else:
+			for _i in range(20 - name_buff.size()):
+				name_buff.append(0)
+		
+		file.store_buffer(name_buff)
+		
+		photo_piece_state.pieces.write_contents(file)
+		flags_tutorial.write_contents(file)
+		
+		file.store_8(0)
+		
+		file.store_16(_s16_as_u16(id_event_held_autoevent))
+		file.store_16(_s16_as_u16(id_event_immediate))
+		anthony_diary_state.write_contents(file)
+		
+		file.store_8(memo_state.last_page)
+		file.store_8(id_last_jiten)
+		flags_code_entry.write_contents(file)
+		file.store_16(objective)
+		flags_party_member.write_contents(file)
+
 		file.close()
-		
 	return file != null
 
 func read_save(path : String):
@@ -201,5 +341,48 @@ func read_save(path : String):
 		chapter = file.get_32()
 		_id_room = file.get_32()
 		_id_room_sub = file.get_32()
+		
+		file.get_32()	# Unused
+		file.get_32()	# TimeElapsed		
+		file.get_32()	# TimeElapsedOverflow
+		
+		camera_state.available.read_contents(file)
+		camera_state.pieces.read_contents(file)
+		
+		file.get_buffer(30) # Unused
+		
+		tea_state.available_elements.read_contents(file)
+		tea_state.available_recipes.read_contents(file)
+		hamster_state.level = file.get_8()
+		hamster_state.unlocked.read_contents(file)
+		hamster_state.current_grid.read_contents(file)
+		hamster_state.record.read_contents(file)
+		tea_state.stoe.read_contents(file)
+		
+		file.get_buffer(3)
+		
+		memo_state.read_contents(file)
+		fukamaru_state.read_contents(file)
+		photo_piece_state.interacted.read_contents(file)
+		photo_piece_state.taken.read_contents(file)
+		photo_piece_state.completed.read_contents(file)
+		flags_items.read_contents(file)
+		flags_menu_new.read_contents(file)
+		tea_state.solved.read_contents(file)
+		hamster_state.name = file.get_buffer(20).get_string_from_utf8() # NDS uses shift-jis
+		photo_piece_state.pieces.read_contents(file)
+		flags_tutorial.read_contents(file)
+		
+		file.get_8()
+		
+		id_event_held_autoevent = _u16_as_s16(file.get_16())
+		id_event_immediate = _u16_as_s16(file.get_16())
+		anthony_diary_state.read_contents(file)
+		
+		memo_state.last_page = file.get_8()
+		id_last_jiten = file.get_8()
+		flags_code_entry.read_contents(file)
+		objective = file.get_16()
+		flags_party_member.read_contents(file)
 		
 		file.close()
