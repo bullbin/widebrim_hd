@@ -1,10 +1,10 @@
-from PyCriCodecs import *
-from os.path import join, normpath, basename, splitext, dirname
-from os import makedirs
-from typing import Tuple, List, Dict, Optional, Union
 from io import BytesIO
+from os import makedirs
+from os.path import basename, dirname, join, normpath, splitext
+from typing import Dict, List, Optional, Tuple, Union
+
 import ffmpeg
-import subprocess
+from PyCriCodecs import *
 
 class DeferredACB(ACB):
 
@@ -21,10 +21,7 @@ class DeferredACB(ACB):
             awbObj = AWB(self.payload[0]['AwbFile'][1])
         self.awb = awbObj
 
-def wav_to_ogg_ffmpeg(data_wav : bytearray, quality : int = 6, path_custom_ffmpeg : Optional[str] = None) -> Tuple[Optional[bytearray], bool, float]:
-
-    if path_custom_ffmpeg == None:
-        path_custom_ffmpeg = "ffmpeg"
+def wav_to_ogg_ffmpeg(data_wav : bytearray, command_ffmpeg : str, quality : int = 7) -> Tuple[Optional[bytearray], bool, float]:
 
     def wav_to_ogg(data_wav : bytearray) -> bytearray:
         pipe_hunger = BytesIO(data_wav)
@@ -32,7 +29,7 @@ def wav_to_ogg_ffmpeg(data_wav : bytearray, quality : int = 6, path_custom_ffmpe
         process = (ffmpeg
                    .input('pipe:')
                    .output('pipe:', format="ogg", acodec="libvorbis", loglevel="quiet", **{'qscale:a': quality})
-                   .run_async(pipe_stdin=True, pipe_stdout=True, cmd=path_custom_ffmpeg)
+                   .run_async(pipe_stdin=True, pipe_stdout=True, cmd=command_ffmpeg)
                    )
 
         output, _ = process.communicate(input=pipe_hunger.getbuffer())
@@ -90,15 +87,13 @@ def wav_to_ogg_ffmpeg(data_wav : bytearray, quality : int = 6, path_custom_ffmpe
     
     return (wav_to_ogg(data_wav), False, 0)
 
-def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, force_remap : bool = False, auto_remap : bool = True, compress : bool = True, data_awb : Optional[bytearray] = None, path_custom_ffmpeg : Optional[str] = None) -> bool:
+def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, force_remap : bool = False, auto_remap : bool = True, compress : bool = True, data_awb : Optional[bytearray] = None, command_ffmpeg : str = "ffmpeg") -> bool:
     """Extract samples from an ACB file with an attempt to preserve proper filenames.
 
     Files will be converted to either OGG or WAV with same filename (different extension). Compression quality for ACB is balanced to provide good quality at the same size as the original.
 
     Remapping support is experimental. While it does resolve a mapping from name to tracks that matches other software, sometimes tracks are not in the expected order, breaking everything. Use at your
     own risk.
-
-    Compression requires ffmpeg. If ffmpeg is not installed correctly, compression will be disabled.
 
     Args:
         path_acb (Union[str, bytearray]): Path to ACB archive or raw bytes. If bytes are used, data_awb must be supplied.
@@ -107,19 +102,11 @@ def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, 
         auto_remap (bool, optional): Automatically enables filename re-processing if extra track references are found in the file. Defaults to True.
         compress (bool, optional): Export as OGG instead of WAV. OGG has comparable space / quality to the original and requires extra metadata. WAV is large but embeds metadata. Defaults to True.
         data_awb (Optional[bytearray], optional): AWB file to store samples. Only required if path_acb is bytes; if the AWB is bundled and the ACB is binary, set as an empty byte string. Defaults to None.
-        path_custom_ffmpeg (Optional[str], optional): Alternative path to FFMPEG executable. None to use system FFMPEG.
+        command_ffmpeg (str, optional): Alternative path to FFMPEG executable. Defaults to "ffmpeg" for using system executable.
 
     Returns:
         bool: True if extraction was successful.
     """
-
-    if path_custom_ffmpeg == None:
-        test_ffmpeg_call = "ffmpeg"
-    else:
-        test_ffmpeg_call = path_custom_ffmpeg
-
-    if subprocess.call("%s -version" % test_ffmpeg_call, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) != 0:
-        compress = False
 
     if type(path_acb) == str:
         path_acb = normpath(path_acb)
@@ -172,7 +159,7 @@ def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, 
                 hcaObj = HCA(files[idx])
                 wav_data = bytearray(hcaObj.decode())
                 if compress:
-                    ogg_data, looped, start = wav_to_ogg_ffmpeg(wav_data, path_custom_ffmpeg=path_custom_ffmpeg)
+                    ogg_data, looped, start = wav_to_ogg_ffmpeg(wav_data, command_ffmpeg)
                     if looped:
                         loops.append((name_dict[id] + ".ogg", start))
 
@@ -209,7 +196,7 @@ def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, 
             wav_data = bytearray(hcaObj.decode())
 
             if compress:
-                ogg_data, looped, start = wav_to_ogg_ffmpeg(wav_data, path_custom_ffmpeg=path_custom_ffmpeg)
+                ogg_data, looped, start = wav_to_ogg_ffmpeg(wav_data, command_ffmpeg)
                 if looped:
                     loops.append((name + ".ogg", start))
 
@@ -224,30 +211,20 @@ def naive_decode_wav_from_acb(path_acb : Union[str, bytearray], path_out : str, 
 
     return True
 
-def naive_decode_wav_from_awb(path_awb : Union[str, bytearray], path_out : str, compress : bool = True, path_custom_ffmpeg : Optional[str] = None) -> bool:
+def naive_decode_wav_from_awb(path_awb : Union[str, bytearray], path_out : str, compress : bool = True, command_ffmpeg : str = "ffmpeg") -> bool:
     """Convert an AWB file to WAV and retain original filename (different extension).
 
     This function only works for files containing a single sample.
-
-    Compression requires ffmpeg. If ffmpeg is not installed correctly, compression will be disabled.
 
     Args:
         path_awb (str, bytearray): Path to AWB archive or raw bytes.
         path_out (str): Path to output directory. If using bytes for ACB, add the export folder name to the output path.
         compress (bool, optional): Export as OGG instead of WAV. OGG has comparable space / quality to the original and requires extra metadata. WAV is large but embeds metadata. Defaults to True.
-        path_custom_ffmpeg (Optional[str], optional): Alternative path to FFMPEG executable. None to use system FFMPEG.
+        command_ffmpeg (str, optional): Alternative path to FFMPEG executable. Defaults to "ffmpeg" for using system executable.
 
     Returns:
         bool: True if extraction was successful.
     """
-
-    if path_custom_ffmpeg == None:
-        test_ffmpeg_call = "ffmpeg"
-    else:
-        test_ffmpeg_call = path_custom_ffmpeg
-
-    if subprocess.call("%s -version" % test_ffmpeg_call, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) != 0:
-        compress = False
 
     if compress:
         extension = ".ogg"
@@ -281,7 +258,7 @@ def naive_decode_wav_from_awb(path_awb : Union[str, bytearray], path_out : str, 
     wavfile = hcaObj.decode()
     
     if compress:
-        data, _looped, _loop_start = wav_to_ogg_ffmpeg(wavfile, quality=3, path_custom_ffmpeg=path_custom_ffmpeg)
+        data, _looped, _loop_start = wav_to_ogg_ffmpeg(wavfile, command_ffmpeg, quality=5)
         wavfile = data
 
     with open(path_out, 'wb+') as out:

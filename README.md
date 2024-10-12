@@ -19,15 +19,8 @@ You will need the following:
  - Godot 4.2 or newer
  - Python 3+
  - [PyCriCodecs](https://github.com/Youjose/PyCriCodecs), tested with 0.4.8
-
-### Optional Prerequisites
-To improve your experience, the following is recommended:
-
- - FFMPEG with libvorbis (i.e., any modern FFMPEG 'essentials' build)
+ -  FFMPEG with libvorbis, libtheora and libx264 (i.e., any modern FFMPEG 'essentials' build)
 	 - This can either be installed system-wide (i.e., on PATH for Windows) or [downloaded locally](https://www.ffmpeg.org/download.html) **(-f flag must be specified during install)**
-	 - **Strongly recommended.** Without FFMPEG, audio is left uncompressed and consumes significant storage space.
-- If installing from an OBB, an environment for building Python extensions (e.g., Microsoft Build Tools for Visual Studio)
-	- **This is not needed for newer versions using the split APK** because encryption has been removed. The provided extension only accelerates OBB decryption.
 
 ### Installation Guide
 
@@ -37,12 +30,12 @@ For obvious reasons, widebrim HD is not bundled with any game assets. A Python s
  2. Clone the repository.
  3. Start a terminal inside `widebrim_hd/assets_py_unpacker` and run the following:
     - Install requirements with `pip install -r requirements.txt`
-	     - <i>(Optional, <b>recommended if installing from an OBB</b>)</i> Build Cython extension for faster unpacking with `python setup.py build_ext --inplace`.
+	     - <i>(Optional, <b>recommended if installing from an OBB</b>, irrelevant for APK installs)</i> Build Cython extension for faster decryption with `python setup.py build_ext --inplace`.
     - Unpack and convert assets with `python install_apk_obb.py <path to base apk> <path to additional data>`.
 	    - The additional data can either be the OBB or InstallAssets APK. **New versions must use the InstallAssets APK for additional data and not be modified to merge the APKs.** Use the base APK that corresponds to the additional data. 
 	    - The install script has arguments that can be set to change its behavior:
 		    - `-f <path to ffmpeg executable>` to use a local build of FFMPEG if system build is not available.
-		    - `--jp`, `--en_eu`, `--en_us`, `--es`, `--fr`, `--it`, `--de`, `--nl`, `--ko` to filter the installed languages to save space. Global builds have all languages except Japanese. Default behavior exports all languages; this will be overridden if any language flag is set. Multiple language flags can be set simultaneously. **This does not currently modify the Godot install** so make sure to set `CONFIG_GAME_LANGUAGE` in `widebrim_hd\godot\scripts\consts.gd`. **By default, English (Europe) is used**.
+		    - `--jp`, `--en_eu`, `--en_us`, `--es`, `--fr`, `--it`, `--de`, `--nl`, `--ko` to filter the installed languages to save space. Global builds have all languages except Japanese. Default behavior exports all languages; this will be overridden if any language flag is set. Multiple language flags can be set simultaneously. **This doesn't modify the Godot install** so make sure to set `CONFIG_GAME_LANGUAGE` in `widebrim_hd\godot\scripts\consts.gd`. **By default, English (Europe) is used**.
 	    - To see all options, do `python install_apk_obb.py --help`
  4. Import `widebrim_hd/project.godot` into the Godot Editor. This will take a long time for first boot - even a single-language install has around 12,000 assets!
 
@@ -60,7 +53,7 @@ widebrim HD continues where [widebrim](https://github.com/bullbin/widebrim) left
 widebrim HD is a rewrite of [widebrim](https://github.com/bullbin/widebrim) combined with additional knowledge from reversing LAYTON2 HD. It tries to be largely accurate and should replicate most engine-related bugs in the future, especially because the new engine itself has none of the quirks of the Nintendo DS version.
 
 ## How far along is this?
-Not very, gamemode switching is implemented and a basic event and room parser have been written. It's not known how far along the story can be completed yet.
+Not very, gamemode switching is implemented and a basic event and room parser have been written.
 
 ## How can I contribute?
 ### Something broke and I'd like to file a bug report

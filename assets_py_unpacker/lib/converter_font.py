@@ -1,7 +1,8 @@
+from os.path import basename, normpath, splitext
 from typing import Dict, Union
-import numpy as np
+
 import cv2
-from os.path import splitext, normpath, basename
+import numpy as np
 
 # TODO - This has only been tested on the EU ROM
 
