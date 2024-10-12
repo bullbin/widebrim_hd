@@ -1,5 +1,4 @@
 import argparse
-import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
 from os import getcwd, remove, walk
@@ -8,9 +7,10 @@ from typing import List, Optional, Tuple
 from xml.etree.ElementTree import ParseError
 
 from lib import (OneLinePrinter, convert_font_to_bmfont, decode_axml_to_xml,
-                 extract_apk, extract_obb, get_version_information,
-                 is_apk_base, is_apk_install_block, mp4_to_ogv,
-                 naive_decode_wav_from_acb, naive_decode_wav_from_awb)
+                 does_ffmpeg_support_features, extract_apk, extract_obb,
+                 get_version_information, is_apk_base, is_apk_install_block,
+                 mp4_to_ogv_pool, naive_decode_wav_from_acb,
+                 naive_decode_wav_from_awb)
 
 PATH_OUT            : str = join(dirname(getcwd()), "assets")
 PATH_OUT_FONT       : str = join(dirname(getcwd()), "font")
@@ -33,7 +33,7 @@ def get_manifest(filepath_to_apk : str) -> Optional[ET.Element]:
 			pass
 	return None
 
-print("widebrim_hd asset extractor 0.2.0a\n")
+print("widebrim_hd asset extractor 0.2.1a\n")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path_base_apk", help="path to base game APK")
@@ -73,6 +73,13 @@ def get_starters_for_language(jp : bool, en_eu : bool, en_us : bool, es : bool, 
 				output.append(normpath(path))
 
 	return output
+
+def get_valid_ffmpeg_command(alt_path : Optional[str]) -> Optional[str]:
+	if alt_path != None and does_ffmpeg_support_features(alt_path):
+		return alt_path
+	if does_ffmpeg_support_features("ffmpeg"):
+		return "ffmpeg"
+	return None
 
 def do():
 	base_manifest = get_manifest(args.path_base_apk)
@@ -114,6 +121,11 @@ def do():
 	else:
 		pass
 
+	custom_ffmpeg_command = get_valid_ffmpeg_command(args.ffmpeg_path)
+	if custom_ffmpeg_command == None:
+		print("Installation error: FFMPEG not found. Check it is installed system-wide or specify FFMPEG location with -f <path_including_executable>.")
+		return
+
 	data_extracted = extract_apk(args.path_base_apk, PATH_OUT, PATH_OUT_ICON, starters, True)
 	if not(data_extracted):
 		print("Installation error: base APK could not be extracted.")
@@ -129,8 +141,20 @@ def do():
 		return
 	
 	font_success = convert_font_to_bmfont(join(PATH_OUT, PATH_INT_REL_FONT), join(PATH_OUT_FONT, PATH_REL_FONT))
-	audio_success = convert_audio(PATH_OUT, args.ffmpeg_path)
-	video_success = convert_video(PATH_OUT, args.ffmpeg_path)
+	audio_success, cleanup_aud = convert_audio(PATH_OUT, custom_ffmpeg_command)
+	video_success, cleanup_vid = convert_video(PATH_OUT, custom_ffmpeg_command)
+	
+	printer = OneLinePrinter()
+	printer.print("Cleaning up...")
+	to_delete = list(cleanup_vid + cleanup_aud)
+
+	for idx, target in enumerate(to_delete):
+		if exists(target):
+			printer.print("Removing %d/%d: %s" % (idx + 1, len(to_delete), basename(target)))
+			remove(target)
+	
+	printer.print("Cleaned up %d files!" % (len(cleanup_aud) + len(cleanup_vid)))
+	print("")
 
 	if font_success and audio_success and video_success:
 		print("\nInstallation complete! You may now start widebrim_hd.")
@@ -144,18 +168,7 @@ def do():
 			print("\tVideo conversion error.")
 		print("\nwidebrim_hd may not be playable. Please report this to the widebrim_hd GitHub!")
 
-def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
-	
-	use_system_ffmpeg = path_alt_ffmpeg == None
-	
-	if path_alt_ffmpeg != None:
-		if subprocess.call("%s -version" % path_alt_ffmpeg, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) != 0:
-			print("Custom FFMPEG at %s could not be called correctly, falling back to system FFMPEG!" % path_alt_ffmpeg)
-			use_system_ffmpeg = True
-			path_alt_ffmpeg = None
-	
-	if use_system_ffmpeg and subprocess.call("ffmpeg -version", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) != 0:
-		print("FFMPEG is not installed correctly. Audio compression has been disabled - expect huge file sizes!")
+def convert_audio(path_out : str, command_ffmpeg : str) -> Tuple[bool, List[str]]:
 
 	targets_acb = []
 	targets_awb = []
@@ -179,8 +192,8 @@ def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 	
 	for idx, target in enumerate(targets_acb):
 		printer.print("Converting library %d/%d: %s" % (idx + 1, len(targets_acb), basename(target)))
-		if not(naive_decode_wav_from_acb(target, dirname(target), path_custom_ffmpeg=path_alt_ffmpeg)):
-			return False
+		if not(naive_decode_wav_from_acb(target, dirname(target), command_ffmpeg=command_ffmpeg)):
+			return (False, [])
 		ext_db = splitext(target)[0] + ".awb"
 		to_delete.append(ext_db)
 	
@@ -190,7 +203,7 @@ def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 
 	to_delete.extend(targets_acb)
 
-	printer.print("Converted audio libraries!")
+	printer.print("Converted audio libraries, %d/%d!" % (len(targets_acb), len(targets_acb)))
 
 	print("")
 	printer = OneLinePrinter()
@@ -198,40 +211,18 @@ def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 
 	for idx, target in enumerate(targets_awb):
 		printer.print("Converting sample %d/%d: %s" % (idx + 1, len(targets_awb), basename(target)))
-		if not(naive_decode_wav_from_awb(target, dirname(target), path_custom_ffmpeg=path_alt_ffmpeg)):
-			return False
+		if not(naive_decode_wav_from_awb(target, dirname(target), command_ffmpeg=command_ffmpeg)):
+			return (False, [])
 		to_delete.append(target)
 	
-	printer.print("Converted audio samples!")
-	
-	print("")
-	printer = OneLinePrinter()
-	printer.print("Removing source audio...")
-
-	for idx, target in enumerate(to_delete):
-		if exists(target):
-			printer.print("Removing %d/%d: %s" % (idx + 1, len(to_delete), basename(target)))
-			remove(target)
-	
-	printer.print("Removed source audio!")
+	printer.print("Converted audio samples, %d/%d!" % (len(targets_awb), len(targets_awb)))
 	print("")
 
-	return True
+	return (True, to_delete)
 
-def convert_video(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
-
-	ffmpeg_working : bool = subprocess.call("ffmpeg -version", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) == 0
-	if path_alt_ffmpeg != None:
-		if subprocess.call("%s -version" % path_alt_ffmpeg, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) == 0:
-			ffmpeg_working = True
-		else:
-			path_alt_ffmpeg = None
-	
-	if not(ffmpeg_working):
-		return False
+def convert_video(path_out : str, command_ffmpeg : str) -> Tuple[bool, List[str]]:
 
 	targets_mp4 : List[str] = []
-	to_delete : List[str] = []
 
 	for path, _sub, files in walk(path_out):
 		for name in files:
@@ -240,30 +231,8 @@ def convert_video(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 			
 			if extension == ".mp4":
 				targets_mp4.append(path_full)
-	
-	printer = OneLinePrinter()
-	printer.print("Converting cutscene videos...")
 
-	for idx, target in enumerate(targets_mp4):
-		printer.print("Converting cutscene %d/%d: %s" % (idx + 1, len(targets_mp4), basename(target)))
-		if not(mp4_to_ogv(target, dirname(target), path_custom_ffmpeg=path_alt_ffmpeg)):
-			return False
-		to_delete.append(target)
-	
-	printer.print("Converted cutscenes!")
-	
-	print("")
-	printer = OneLinePrinter()
-	printer.print("Removing source videos...")
-
-	for idx, target in enumerate(to_delete):
-		if exists(target):
-			printer.print("Removing %d/%d: %s" % (idx + 1, len(to_delete), basename(target)))
-			remove(target)
-	
-	printer.print("Removed source videos!")
-	print("")
-
-	return True
+	successful = mp4_to_ogv_pool(targets_mp4, command_ffmpeg=command_ffmpeg)
+	return (len(successful) == len(targets_mp4), successful)
 
 do()

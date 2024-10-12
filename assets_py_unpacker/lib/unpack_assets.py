@@ -1,6 +1,6 @@
-from typing import Optional, Tuple, List
-from os.path import normpath, join, dirname
 from os import cpu_count, makedirs
+from os.path import dirname, join, normpath
+from typing import List, Optional, Tuple
 
 try:
     from .lt2_decrypt import decrypt_asset as decrypt
@@ -21,27 +21,17 @@ except ModuleNotFoundError:
             decrypted[x] = decrypted[x] ^ (offset >> 0x18)
         return decrypted
 
-import zipfile
 import time
+import zipfile
 from math import ceil
+from threading import Thread
+
 import cv2
 import numpy as np
 
-from threading import Thread, Lock
+from . import OneLinePrinter
 
 max_thread_count    : int   = max(1, min(ceil(cpu_count() * 0.5), cpu_count() - 1))
-
-class OneLinePrinter():
-    
-    def __init__(self):
-        self.__max_line : int = 0
-        self.__lock : Lock = Lock()
-    
-    def print(self, line : str):
-        self.__lock.acquire()
-        self.__max_line = max(self.__max_line, len(line))
-        print(line + " " * (self.__max_line - len(line)), end="\r", flush=True)
-        self.__lock.release()
 
 def extract_apk(path_apk : str, path_out : str, path_out_icon : str, valid_prefixes : List[str], find_icon : bool = False) -> bool:
     """Extracts assets from the LAYTON2 APK.
