@@ -9,8 +9,8 @@ from xml.etree.ElementTree import ParseError
 
 from lib import (OneLinePrinter, convert_font_to_bmfont, decode_axml_to_xml,
                  extract_apk, extract_obb, get_version_information,
-                 is_apk_base, is_apk_install_block, naive_decode_wav_from_acb,
-                 naive_decode_wav_from_awb)
+                 is_apk_base, is_apk_install_block, mp4_to_ogv,
+                 naive_decode_wav_from_acb, naive_decode_wav_from_awb)
 
 PATH_OUT            : str = join(dirname(getcwd()), "assets")
 PATH_OUT_FONT       : str = join(dirname(getcwd()), "font")
@@ -33,7 +33,7 @@ def get_manifest(filepath_to_apk : str) -> Optional[ET.Element]:
 			pass
 	return None
 
-print("widebrim_hd asset extractor 0.1.0a\n")
+print("widebrim_hd asset extractor 0.2.0a\n")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path_base_apk", help="path to base game APK")
@@ -130,15 +130,19 @@ def do():
 	
 	font_success = convert_font_to_bmfont(join(PATH_OUT, PATH_INT_REL_FONT), join(PATH_OUT_FONT, PATH_REL_FONT))
 	audio_success = convert_audio(PATH_OUT, args.ffmpeg_path)
+	video_success = convert_video(PATH_OUT, args.ffmpeg_path)
 
-	if font_success and audio_success:
+	if font_success and audio_success and video_success:
 		print("\nInstallation complete! You may now start widebrim_hd.")
-	elif font_success:
-		print("\nInstallation failed: audio conversion error.")
-	elif audio_success:
-		print("\nInstallation failed: font conversion error.")
 	else:
-		print("\nInstallation failed: audio and font conversion error.")
+		print("Installation failed:")
+		if not(font_success):
+			print("\tFont conversion error.")
+		if not(audio_success):
+			print("\tAudio conversion error.")
+		if not(video_success):
+			print("\tVideo conversion error.")
+		print("\nwidebrim_hd may not be playable. Please report this to the widebrim_hd GitHub!")
 
 def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 	
@@ -210,6 +214,54 @@ def convert_audio(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
 			remove(target)
 	
 	printer.print("Removed source audio!")
+	print("")
+
+	return True
+
+def convert_video(path_out : str, path_alt_ffmpeg : Optional[str]) -> bool:
+
+	ffmpeg_working : bool = subprocess.call("ffmpeg -version", stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) == 0
+	if path_alt_ffmpeg != None:
+		if subprocess.call("%s -version" % path_alt_ffmpeg, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL, shell=True) == 0:
+			ffmpeg_working = True
+		else:
+			path_alt_ffmpeg = None
+	
+	if not(ffmpeg_working):
+		return False
+
+	targets_mp4 : List[str] = []
+	to_delete : List[str] = []
+
+	for path, _sub, files in walk(path_out):
+		for name in files:
+			path_full = join(path, name)
+			extension = splitext(path_full)[-1]
+			
+			if extension == ".mp4":
+				targets_mp4.append(path_full)
+	
+	printer = OneLinePrinter()
+	printer.print("Converting cutscene videos...")
+
+	for idx, target in enumerate(targets_mp4):
+		printer.print("Converting cutscene %d/%d: %s" % (idx + 1, len(targets_mp4), basename(target)))
+		if not(mp4_to_ogv(target, dirname(target), path_custom_ffmpeg=path_alt_ffmpeg)):
+			return False
+		to_delete.append(target)
+	
+	printer.print("Converted cutscenes!")
+	
+	print("")
+	printer = OneLinePrinter()
+	printer.print("Removing source videos...")
+
+	for idx, target in enumerate(to_delete):
+		if exists(target):
+			printer.print("Removing %d/%d: %s" % (idx + 1, len(to_delete), basename(target)))
+			remove(target)
+	
+	printer.print("Removed source videos!")
 	print("")
 
 	return True

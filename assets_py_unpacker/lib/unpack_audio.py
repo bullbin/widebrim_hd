@@ -21,7 +21,7 @@ class DeferredACB(ACB):
             awbObj = AWB(self.payload[0]['AwbFile'][1])
         self.awb = awbObj
 
-def wav_to_ogg_ffmpeg(data_wav : bytearray, quality : int = 6, path_custom_ffmpeg : Optional[str] = None) -> Tuple[Optional[bytearray], bool, float]:
+def wav_to_ogg_ffmpeg(data_wav : bytearray, quality : int = 7, path_custom_ffmpeg : Optional[str] = None) -> Tuple[Optional[bytearray], bool, float]:
 
     if path_custom_ffmpeg == None:
         path_custom_ffmpeg = "ffmpeg"
@@ -281,7 +281,7 @@ def naive_decode_wav_from_awb(path_awb : Union[str, bytearray], path_out : str, 
     wavfile = hcaObj.decode()
     
     if compress:
-        data, _looped, _loop_start = wav_to_ogg_ffmpeg(wavfile, quality=3, path_custom_ffmpeg=path_custom_ffmpeg)
+        data, _looped, _loop_start = wav_to_ogg_ffmpeg(wavfile, quality=5, path_custom_ffmpeg=path_custom_ffmpeg)
         wavfile = data
 
     with open(path_out, 'wb+') as out:
