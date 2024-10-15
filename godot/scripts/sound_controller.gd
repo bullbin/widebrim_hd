@@ -15,6 +15,7 @@ extends Node
 # level functions to middleware which is mimicked here.
 
 # TODO - 2_Sound_SE_Play_Preresolved_ID
+# TODO - lt2SoundObject.SND_Process
 
 class CriMonophonicChannel:
 	extends Node2D
@@ -79,8 +80,10 @@ class CriMonophonicChannel:
 			loop = true
 		
 		channel.stream = audio
-		channel.stream.loop = loop
-		channel.stream.loop_offset = loop_base
+		
+		if channel.stream != null:
+			channel.stream.loop = loop
+			channel.stream.loop_offset = loop_base
 		
 		if start_now:
 			channel.play()
@@ -267,7 +270,27 @@ func fade_bgm_2(target_vol : float, duration : float):
 func play_sample_sfx(id : int):
 	_node_audio_sample.stop()
 	_node_audio_sample.stream = Lt2Utils.get_sample_audio_from_sfx_id(id)
+	_node_audio_sample.stream_paused = false
 	_node_audio_sample.play()
+
+func play_cutscene_audio(id : int):
+	# TODO - This is a workaround since we're not implementing the full set of sound features
+	#        Probably is meant to override stream audio channel, REF - lt2CSndStream.__Update
+	var path_sfx = Lt2Utils.get_asset_path("sound/m%d.ogg" % id)
+	_node_audio_sample.stream = load(path_sfx)
+	_node_audio_sample.stream_paused = false
+	_node_audio_sample.play()
+
+func pause_sample_sfx():
+	# Workaround, LT2R seeks to the time instead which we're not going to do...
+	# REF - MovieObject.PlayMovie
+	_node_audio_sample.stream_paused = true
+
+func resume_sample_sfx():
+	_node_audio_sample.stream_paused = false
+
+func stop_sample_sfx():
+	_node_audio_sample.stop()
 
 func play_preresolved_synth_sfx(id : int, audio : AudioStream, allow_overlap : bool = false):
 	if id >= 200:
