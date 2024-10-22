@@ -92,6 +92,10 @@ func _ready():
 		_:
 			screen_controller.fade_in_async(Lt2Constants.SCREEN_CONTROLLER_DEFAULT_FADE)
 
+func _hide_graphical_elements():
+	for char in _characters:
+		char.set_visibility(false)
+
 func _execute_instruction(opcode : int, operands : Array) -> bool:
 	var known = await super(opcode, operands)
 	if not(known):

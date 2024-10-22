@@ -186,6 +186,12 @@ func configure_event_mode():
 	_sizer_master.set_room_mode_state(false)
 	_refresh_stored_sizes()
 
+func set_overlay_id(id : int):
+	pass
+
+func get_overlay_id() -> int:
+	return 0
+
 # TODO - Both fading functions aren't amazingly safe or well animated
 #        This is pretty rudimentary but does the job
 func _fade_dual_internal(target : float, duration : float):

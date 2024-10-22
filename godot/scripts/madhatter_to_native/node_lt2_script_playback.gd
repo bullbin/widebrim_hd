@@ -26,7 +26,16 @@ func load_init(state : Lt2State, screen_controller : Lt2ScreenController, script
 func _init(state : Lt2State, screen_controller : Lt2ScreenController, script : Lt2AssetScript):
 	load_init(state, screen_controller, script)
 
+func _hide_graphical_elements():
+	pass
+
 func _execute_instruction(opcode : int, operands : Array) -> bool:
+	if Lt2Constants.DEBUG_DRAMAEVENT_VERBOSE:
+		if Lt2Constants.SCRIPT_OPERANDS.find_key(opcode) != null:
+			print("OPCODE ", Lt2Constants.SCRIPT_OPERANDS.find_key(opcode), " @ ", operands)
+		else:
+			print("OPCODE Unknown ", opcode, " @ ", operands)
+	
 	match opcode:
 		
 		Lt2Constants.SCRIPT_OPERANDS.EXIT_SCRIPT:
@@ -45,8 +54,14 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 			for key in Lt2Constants.STRING_TO_GAMEMODE_VALUE.keys():
 				if Lt2Utils.lt2_string_compare(key, operands[0]):
 					_state.set_gamemode(Lt2Constants.STRING_TO_GAMEMODE_VALUE.get(key))
+			
+			if Lt2Utils.lt2_string_compare("narrationfull", operands[0]):
+				_state.narration_use_fullmode = true
+			elif Lt2Utils.lt2_string_compare("narration", operands[0]):
+				_state.narration_use_fullmode = false
 		
 		Lt2Constants.SCRIPT_OPERANDS.SET_END_GAME_MODE:
+			# TODO - narrationfull not permitted here
 			for key in Lt2Constants.STRING_TO_GAMEMODE_VALUE.keys():
 				if Lt2Utils.lt2_string_compare(key, operands[0]):
 					_state.set_gamemode_next(Lt2Constants.STRING_TO_GAMEMODE_VALUE.get(key))
@@ -68,6 +83,34 @@ func _execute_instruction(opcode : int, operands : Array) -> bool:
 		
 		Lt2Constants.SCRIPT_OPERANDS.LOAD_SUB_BG:
 			_screen_controller.set_background_ts(operands[0])
+		
+		Lt2Constants.SCRIPT_OPERANDS.DRAW_CHAPTER:
+			var old_overlay_id = _screen_controller.get_overlay_id()
+			await _screen_controller.fade_out_bs_async(1.0)
+			_hide_graphical_elements()
+			
+			_screen_controller.set_overlay_id(0xfa)
+			_screen_controller.set_background_bs("chapter/chapter%d.bgx" % operands[0])
+			# BGM_StopEx? Probably stop BGM after fade out
+			var entry_wait_tm_def = _state.dlz_tm_def.get_entry(0x44c)
+			var wait_period : float = 0.0
+			if entry_wait_tm_def != null:
+				wait_period = entry_wait_tm_def.count_frames * Lt2Constants.TIMING_LT2_TO_MILLISECONDS
+			
+			SoundController.fade_bgm_2(0.0, wait_period)
+			SoundController.play_sample_sfx(0x14)
+			
+			await _screen_controller.fade_in_bs_async(1.0)
+			await get_tree().create_timer(wait_period).timeout
+			
+			# TODO - Await A button press
+			await _touch_received
+			get_viewport().set_input_as_handled()
+			
+			# BGM does not use fade_bgm_2 (StopEx, FadeVolumeEx) but not sure if it's blocking
+			await _screen_controller.fade_out_bs_async(1.0)
+			SoundController.fade_bgm_2(1.0, wait_period)
+			_screen_controller.set_overlay_id(old_overlay_id)
 		
 		Lt2Constants.SCRIPT_OPERANDS.WAIT_FRAME:
 			await get_tree().create_timer(operands[0] * Lt2Constants.TIMING_LT2_TO_MILLISECONDS).timeout

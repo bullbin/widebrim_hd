@@ -47,6 +47,7 @@ var dlz_ht_evt = DlzHerbteaEvent.new(PATH_DLZ_HTEVENT)
 # ht_tlk
 
 var first_touch_enabled : bool = false
+var narration_use_fullmode : bool = false
 var active_entry_nz_lst : DlzNazoList.DlzEntryNzLst = null
 
 func _init():
