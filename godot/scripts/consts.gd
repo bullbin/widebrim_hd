@@ -210,7 +210,8 @@ enum SCRIPT_OPERANDS {
 	SET_BAND_TYPE,
 	TILE2_TOUCH_COUNTER,
 	DRAW_WAIT_INPUT,
-	SET_EVENT_BAND_TYPE}
+	SET_EVENT_BAND_TYPE
+}
 
 enum GAMEMODES {
 	INVALID,
@@ -263,7 +264,7 @@ const STRING_TO_GAMEMODE_VALUE = {"room"		:GAMEMODES.ROOM,
 								"puzzle"        :GAMEMODES.PUZZLE,
 								"movie"         :GAMEMODES.MOVIE,
 								"narration"     :GAMEMODES.NARRATION,
-								"narrationfull" :GAMEMODES.NARRATION, # TODO - return vals in function
+								"narrationfull" :GAMEMODES.NARRATION,
 								"menu"          :GAMEMODES.BAG,
 								"staff"         :GAMEMODES.STAFF,
 								"name"          :GAMEMODES.HAMSTER_NAME,
@@ -288,5 +289,7 @@ const RESOLUTION_TARGET 				: Vector2i = Vector2i(768, 1136)
 const CONFIG_GAME_LANGUAGE 				: LANGUAGES = LANGUAGES.EN_EU
 
 const DEBUG_SAVE_PATH : String = "res://state.sav"
+
 const DEBUG_SAVE_ENABLE_READ 	: bool = true
 const DEBUG_SAVE_ENABLE_WRITE 	: bool = true
+const DEBUG_DRAMAEVENT_VERBOSE	: bool = false
